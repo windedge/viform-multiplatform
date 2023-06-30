@@ -1,0 +1,16 @@
+.gradle/
+.idea/
+.vscode/
+build/
+out/
+dist/
+local.properties
+lint.xml
+*.hprof
+*.out
+*.log
+*.bak.*
+*.cmd
+.excludes.txt
+tasks.py
+fabfile.py

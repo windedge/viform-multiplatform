@@ -1,0 +1,13 @@
+root = true
+
+[*.kt]
+indent_size = 4
+continuation_indent_size = 4
+ij_kotlin_name_count_to_use_star_import = unset
+disabled_rules = no-wildcard-imports
+
+[*.kts]
+indent_size = 2
+continuation_indent_size = 4
+ij_kotlin_name_count_to_use_star_import = unset
+disabled_rules = no-wildcard-imports
