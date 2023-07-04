@@ -36,10 +36,10 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - runner: macos-latest
-            shell: bash
-          - runner: windows-latest
-            shell: msys2 {0}
+#          - runner: macos-latest
+#            shell: bash
+#          - runner: windows-latest
+#            shell: msys2 {0}
           - runner: ubuntu-latest
             shell: bash
     steps:
@@ -148,10 +148,10 @@ jobs:
             tasks: publishToSonatype closeSonatypeStagingRepository
             enabled: ${{ github.event.inputs.skipMavenCentral != 'y' }}
         os:
-          - runner: macos-latest
-            shell: bash
-          - runner: windows-latest
-            shell: msys2 {0}
+#          - runner: macos-latest
+#            shell: bash
+#          - runner: windows-latest
+#            shell: msys2 {0}
           - runner: ubuntu-latest
             shell: bash
     steps:

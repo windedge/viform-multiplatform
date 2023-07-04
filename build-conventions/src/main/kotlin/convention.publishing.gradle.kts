@@ -61,7 +61,6 @@ publishing {
 
 afterEvaluate {
   tasks.withType<AbstractPublishToMaven> publishTask@{
-    this@publishTask.path
     tasks.withType<Sign> signTask@{
       this@publishTask.dependsOn(this@signTask)
     }
