@@ -8,11 +8,11 @@ tasks {
   withType<Jar> {
     manifest {
       attributes += sortedMapOf(
-        "Built-By" to System.getProperty("user.name"),
-        "Build-Jdk" to System.getProperty("java.version"),
-        "Implementation-Version" to project.version,
-        "Created-By" to "${GradleVersion.current()}",
-        "Created-From" to Git.headCommitHash
+          "Built-By" to System.getProperty("user.name"),
+          "Build-Jdk" to System.getProperty("java.version"),
+          "Implementation-Version" to project.version,
+          "Created-By" to "${GradleVersion.current()}",
+          "Created-From" to Git.headCommitHash
       )
     }
   }
@@ -20,11 +20,11 @@ tasks {
     group = "build"
     doLast {
       val groupRepo =
-        file(
-          "${System.getProperty("user.home")}/.m2/repository/${
-            project.group.toString().replace(".", "/")
-          }"
-        )
+          file(
+              "${System.getProperty("user.home")}/.m2/repository/${
+                project.group.toString().replace(".", "/")
+              }"
+          )
       publishing.publications.filterIsInstance<MavenPublication>().forEach {
         groupRepo.resolve(it.artifactId).deleteRecursively()
       }
@@ -55,6 +55,15 @@ publishing {
           password = System.getenv("GH_PASSWORD")
         }
       }
+    }
+  }
+}
+
+afterEvaluate {
+  tasks.withType<AbstractPublishToMaven> publishTask@{
+    this@publishTask.path
+    tasks.withType<Sign> signTask@{
+      this@publishTask.dependsOn(this@signTask)
     }
   }
 }

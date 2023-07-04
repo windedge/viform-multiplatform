@@ -18,11 +18,11 @@ kotlin {
       publications.matching { it.name == name }.all {
         val targetPublication = this@all
         tasks.withType<AbstractPublishToMaven>()
-          .matching { it.publication == targetPublication }
-          .all(action)
+            .matching { it.publication == targetPublication }
+            .all(action)
         tasks.withType<GenerateModuleMetadata>()
-          .matching { it.publication.orNull == targetPublication }
-          .all(action)
+            .matching { it.publication.orNull == targetPublication }
+            .all(action)
       }
     }
   }
