@@ -14,10 +14,10 @@ on:
         description: Should we skip publishing artefacts to Maven Central
         required: false
         default: "y"
-      skipGitHub:
-        description: Should we skip publishing artefacts to GitHub Packages
-        required: false
-        default: "y"
+#      skipGitHub:
+#        description: Should we skip publishing artefacts to GitHub Packages
+#        required: false
+#        default: "y"
   release:
     types: [ created ]
 
@@ -139,9 +139,9 @@ jobs:
     strategy:
       matrix:
         repository:
-          - name: Github Packages
-            tasks: publishAllPublicationsToGitHubRepository
-            enabled: ${{ github.event.inputs.skipGitHub != 'y' }}
+#          - name: Github Packages
+#            tasks: publishAllPublicationsToGitHubRepository
+#            enabled: ${{ github.event.inputs.skipGitHub != 'y' }}
           - name: Maven Central
             # Requires to manually release a new version on https://s01.oss.sonatype.org/#stagingRepositories
             # If you're brave, you could change it to `publishToSonatype closeAndReleaseSonatypeStagingRepository` to fully automate the release
