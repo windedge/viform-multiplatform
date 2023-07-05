@@ -1,0 +1,5 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+
+module:viform-core
+io.github.windedge.viform.core
