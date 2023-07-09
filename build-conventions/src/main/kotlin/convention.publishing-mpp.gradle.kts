@@ -34,8 +34,9 @@ kotlin {
       }
     }
 
-    if (this@target is KotlinAndroidTarget && (!CI || this@target.enabled || SANDBOX))
+    if (this@target is KotlinAndroidTarget && (!CI || this@target.enabled || SANDBOX)) {
       this@target.publishLibraryVariants("release", "debug")
+    }
   }
 
   configurePublishTasks("kotlinMultiplatform") {

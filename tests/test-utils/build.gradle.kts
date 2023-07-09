@@ -1,5 +1,6 @@
 plugins {
   id("convention.kotlin-mpp-tier0")
+  id("convention.kotlin-mpp-js")
   id("convention.library-android")
 }
 

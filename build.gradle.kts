@@ -1,6 +1,5 @@
 plugins {
   alias(libs.plugins.nexus.publish)
-//  alias(libs.plugins.task.tree)
 
   id("convention.versions")
 //  id("convention.git-hooks")

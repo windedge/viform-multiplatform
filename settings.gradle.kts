@@ -17,12 +17,13 @@ includeBuild("./build-conventions/")
 include(":tests:test-utils")
 
 include(
-    ":modules:viform-core",
-    ":modules:viform-compose",
-    ":modules:viform-orbitmvi",
+//  ":modules:viform-ksp",
+  ":modules:viform-core",
+  ":modules:viform-compose",
+  ":modules:viform-orbitmvi",
 )
 
 include(
-    ":tests:viform-core-tests",
-    ":tests:viform-compose-tests",
+  ":tests:viform-core-tests",
+  ":tests:viform-compose-tests",
 )

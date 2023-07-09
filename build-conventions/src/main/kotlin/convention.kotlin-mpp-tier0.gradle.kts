@@ -12,19 +12,5 @@ plugins.withId("com.android.library") {
 }
 
 kotlin {
-  js {
-    useCommonJs()
-    browser {
-      commonWebpackConfig {
-        cssSupport { enabled.set(true) }
-        scssSupport { enabled.set(true) }
-      }
-      testTask {
-//        useKarma()
-        enabled = false
-      }
-    }
-  }
-
   jvm()
 }

@@ -3,54 +3,51 @@ package io.github.windedge.viform.core
 
 import kotlinx.coroutines.flow.MutableStateFlow
 
-sealed class ValidateResult {
+public sealed class ValidateResult {
 
-    object None : ValidateResult()
+    public object None : ValidateResult()
 
-    object Success : ValidateResult()
+    public object Success : ValidateResult()
 
-    class Failure(val message: String) : ValidateResult()
+    public class Failure(public val message: String) : ValidateResult()
 
-    fun isSuccess(): Boolean {
+    public fun isSuccess(): Boolean {
         return this is Success
     }
 
-    fun isOk(): Boolean {
+    public fun isOk(): Boolean {
         return this is None || this is Success
     }
 
-    fun isFailed(): Boolean {
+    public fun isFailed(): Boolean {
         return this is Failure
     }
 
-    val errorMessage: String
+    public val errorMessage: String
         get() {
             require(this is Failure) { "There is no failure, can't get error message" }
             return this.message
         }
 }
 
-interface FormField<V : Any?> {
-    val value: V
+public interface FormField<V : Any?> {
+    public val value: V
 
-    val name: String
+    public val name: String
 
-    val valueFlow: MutableStateFlow<V>
+    public val valueFlow: MutableStateFlow<V>
 
-    val resultFlow: MutableStateFlow<ValidateResult>
+    public val resultFlow: MutableStateFlow<ValidateResult>
 
-    fun addValidator(fieldValidator: FieldValidator<V>)
+    public fun addValidator(fieldValidator: FieldValidator<V>)
 
-    fun setValue(value: V, validate: Boolean = true)
+    public fun setValue(value: V, validate: Boolean = true)
 
-    fun validate(): Boolean
+    public fun validate(): Boolean
 }
 
 
-internal class FormFieldImpl<T, V : Any?>(
-    override val name: String,
-    initialValue: V
-) : FormField<V> {
+internal class FormFieldImpl<T, V : Any?>(override val name: String, initialValue: V) : FormField<V> {
 
     override val valueFlow: MutableStateFlow<V> = MutableStateFlow(initialValue)
 

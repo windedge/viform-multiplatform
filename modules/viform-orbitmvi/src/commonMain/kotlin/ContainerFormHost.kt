@@ -1,5 +1,7 @@
 package io.github.windedge.viform.mvi
 
+import io.github.windedge.viform.core.Cloneable
+import io.github.windedge.viform.core.FormHost
 import kotlinx.coroutines.flow.StateFlow
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.annotation.OrbitDsl
@@ -9,7 +11,7 @@ import org.orbitmvi.orbit.syntax.simple.SimpleSyntax
 import org.orbitmvi.orbit.syntax.simple.intent
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty0
-import kotlin.reflect.full.memberProperties
+//import kotlin.reflect.full.memberProperties
 
 
 public abstract class ContainerFormHost<STATE : Cloneable<STATE>, SIDE_EFFECT : Any>
@@ -25,17 +27,18 @@ public abstract class ContainerFormHost<STATE : Cloneable<STATE>, SIDE_EFFECT : 
     }
 
     override fun <V : Any> submitField(property: KProperty0<V>, value: V) {
-        val updated = currentState.clone()
-        val mutableProperty = updated::class.memberProperties
-            .filter { it is KMutableProperty1<*, *> }
-            .find { prop -> prop.name == property.name } as KMutableProperty1<STATE, V>
-        mutableProperty.set(updated, value)
-        this.submit(updated)
+//        val updated = currentState.clone()
+//        val mutableProperty = updated::class.memberProperties
+//            .filter { it is KMutableProperty1<*, *> }
+//            .find { prop -> prop.name == property.name } as KMutableProperty1<STATE, V>
+//        mutableProperty.set(updated, value)
+//        this.submit(updated)
+        NotImplementedError()
     }
 
     @OptIn(OrbitInternal::class)
     @OrbitDsl
-    suspend fun <SE : Any> SimpleSyntax<STATE, SE>.reduce(
+    public suspend fun <SE : Any> SimpleSyntax<STATE, SE>.reduce(
         validate: Boolean = false,
         reducer: SimpleContext<STATE>.() -> STATE
     ) {

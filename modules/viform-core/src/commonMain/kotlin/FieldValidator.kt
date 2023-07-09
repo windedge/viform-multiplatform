@@ -1,11 +1,11 @@
 package io.github.windedge.viform.core
 
 
-interface FieldValidator<V> {
-    fun validate(input: V): ValidateResult
+public interface FieldValidator<V> {
+    public fun validate(input: V): ValidateResult
 }
 
-fun <V> Custom(validation: (V) -> Boolean, errorMessage: String? = null): Custom<V> {
+public fun <V> Custom(validation: (V) -> Boolean, errorMessage: String? = null): Custom<V> {
     val block = { input: V ->
         val success = validation(input)
         val result = if (success) {
@@ -18,7 +18,7 @@ fun <V> Custom(validation: (V) -> Boolean, errorMessage: String? = null): Custom
     return Custom(block, errorMessage)
 }
 
-class Custom<V>(val validation: (V) -> ValidateResult, private val errorMessage: String? = null) : FieldValidator<V> {
+public class Custom<V>(public val validation: (V) -> ValidateResult, private val errorMessage: String? = null) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
         val validateResult = validation(input)
         if (validateResult.isOk()) {
@@ -31,13 +31,13 @@ class Custom<V>(val validation: (V) -> ValidateResult, private val errorMessage:
     }
 }
 
-class Nullable<V> : FieldValidator<V> {
+public class Nullable<V> : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
         error("Nulable shouldn't be invoked!")
     }
 }
 
-class Required<V> : FieldValidator<V> {
+public class Required<V> : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
         if (input == null) {
             return ValidateResult.Failure("Value can't be null")
@@ -49,7 +49,7 @@ class Required<V> : FieldValidator<V> {
     }
 }
 
-class Or<V>(private val left: FieldValidator<V>, private val right: FieldValidator<V>) : FieldValidator<V> {
+public class Or<V>(private val left: FieldValidator<V>, private val right: FieldValidator<V>) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
         val result1 = left.validate(input)
         val result2 = right.validate(input)
@@ -65,7 +65,7 @@ class Or<V>(private val left: FieldValidator<V>, private val right: FieldValidat
     }
 }
 
-class Numeric : FieldValidator<String> {
+public class Numeric : FieldValidator<String> {
     override fun validate(input: String): ValidateResult {
         if (input.isNumeric()) {
             return ValidateResult.Success
@@ -74,7 +74,7 @@ class Numeric : FieldValidator<String> {
     }
 }
 
-class StringBetween(val minValue: Int, val maxValue: Int) : FieldValidator<String> {
+public class StringBetween(public val minValue: Int, public val maxValue: Int) : FieldValidator<String> {
     override fun validate(input: String): ValidateResult {
         val value = input.toDoubleOrNull() ?: return ValidateResult.Failure("Value is not a number")
         if (value >= minValue && value <= maxValue) {
@@ -84,7 +84,7 @@ class StringBetween(val minValue: Int, val maxValue: Int) : FieldValidator<Strin
     }
 }
 
-class IntBetween(val minValue: Int, val maxValue: Int) : FieldValidator<Int> {
+public class IntBetween(public val minValue: Int, public val maxValue: Int) : FieldValidator<Int> {
     override fun validate(input: Int): ValidateResult {
         if (input in minValue..maxValue) {
             return ValidateResult.Success
@@ -93,7 +93,7 @@ class IntBetween(val minValue: Int, val maxValue: Int) : FieldValidator<Int> {
     }
 }
 
-class DoubleBetween(val minValue: Double, val maxValue: Double) : FieldValidator<Double> {
+public class DoubleBetween(public val minValue: Double, public val maxValue: Double) : FieldValidator<Double> {
     override fun validate(input: Double): ValidateResult {
         if (input in minValue..maxValue) {
             return ValidateResult.Success

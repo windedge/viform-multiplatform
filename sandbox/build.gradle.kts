@@ -12,6 +12,6 @@ application {
 
 dependencies {
   implementation(libs.kotlinx.coroutines.core)
-  implementation("dev.petuska:template-kmp-library")
-  testImplementation("dev.petuska:test-utils")
+  implementation("io.github.windedge:vi-form-core")
+  testImplementation("io.github.windedge:test-utils")
 }
