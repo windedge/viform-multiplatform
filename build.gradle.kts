@@ -5,6 +5,7 @@ plugins {
 //  id("convention.git-hooks")
 
   id("convention.kotlin-mpp-tier0")
+  id("convention.kotlin-mpp-js")
   id("convention.library-android")
   id("convention.library-mpp")
   id("convention.publishing-mpp")
@@ -17,17 +18,17 @@ nexusPublishing.repositories {
   }
 }
 
-gradleEnterprise {
-  buildScan {
-    termsOfServiceUrl = "https://gradle.com/terms-of-service"
-    termsOfServiceAgree = "yes"
-  }
-}
+// gradleEnterprise {
+//   buildScan {
+//     termsOfServiceUrl = "https://gradle.com/terms-of-service"
+//     termsOfServiceAgree = "yes"
+//   }
+// }
 
 kotlin {
   sourceSets {
     commonMain {
-      dependencies { subprojects.filter { it.path.startsWith(":modules:") }.forEach { api(it) } }
+//      dependencies { subprojects.filter { it.path.startsWith(":modules:") }.forEach { api(it) } }
     }
   }
 }
