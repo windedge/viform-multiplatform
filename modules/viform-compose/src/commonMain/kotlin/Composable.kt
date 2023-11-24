@@ -3,15 +3,17 @@ package io.github.windedge.viform.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import io.github.windedge.viform.core.*
-import io.github.windedge.viform.core.Cloneable
+import io.github.windedge.viform.core.Form
+import io.github.windedge.viform.core.FormField
+import io.github.windedge.viform.core.FormHost
+import io.github.windedge.viform.core.ValidateResult
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlin.reflect.KProperty0
 
 @Composable
-public fun <T : Cloneable<T>> FormHost<T>.useForm(content: @Composable FormScope<T>.(T) -> Unit) {
+public fun <T : Any> FormHost<T>.useForm(content: @Composable FormScope<T>.(T) -> Unit) {
     val formScope = FormScope(this)
     val state = this.stateFlow.collectAsState()
     formScope.content(state.value)
@@ -19,7 +21,7 @@ public fun <T : Cloneable<T>> FormHost<T>.useForm(content: @Composable FormScope
 
 public data class ValueAndResult<V>(val value: V, val result: ValidateResult)
 
-public class FormScope<T : Cloneable<T>>(private val formHost: FormHost<T>) {
+public class FormScope<T : Any>(private val formHost: FormHost<T>) {
     @Composable
     public fun <V : Any> field(
         property: KProperty0<V>,
@@ -37,7 +39,7 @@ public class FormScope<T : Cloneable<T>>(private val formHost: FormHost<T>) {
 }
 
 @Suppress("unused")
-public class FieldScope<T : Cloneable<T>, V : Any>(private val formHost: FormHost<T>, public val property: KProperty0<V>) {
+public class FieldScope<T: Any, V : Any>(private val formHost: FormHost<T>, public val property: KProperty0<V>) {
     public val form: Form<T> get() = formHost.form
 
     @Suppress("MemberVisibilityCanBePrivate")

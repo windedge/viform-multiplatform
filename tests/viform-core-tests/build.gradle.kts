@@ -1,6 +1,7 @@
 plugins {
   id("convention.kotlin-mpp-tier0")
   id("convention.library-android")
+  alias(libs.plugins.kopybuilder)
 }
 
 kotlin {

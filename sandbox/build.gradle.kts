@@ -1,6 +1,7 @@
 plugins {
   id("convention.jvm")
   kotlin("jvm") version libs.versions.kotlin.get()
+  alias(libs.plugins.kopybuilder)
   application
 }
 
@@ -12,6 +13,6 @@ application {
 
 dependencies {
   implementation(libs.kotlinx.coroutines.core)
-  implementation("io.github.windedge:vi-form-core")
-  testImplementation("io.github.windedge:test-utils")
+  implementation(libs.viform.core)
+  testImplementation(libs.viform.test.utils)
 }

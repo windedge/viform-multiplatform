@@ -1,6 +1,6 @@
 package io.github.windedge.viform.mvi
 
-import io.github.windedge.viform.core.Cloneable
+import io.github.windedge.copybuilder.CopyBuilderFactory
 import io.github.windedge.viform.core.FormHost
 import kotlinx.coroutines.flow.StateFlow
 import org.orbitmvi.orbit.ContainerHost
@@ -9,12 +9,10 @@ import org.orbitmvi.orbit.annotation.OrbitInternal
 import org.orbitmvi.orbit.syntax.simple.SimpleContext
 import org.orbitmvi.orbit.syntax.simple.SimpleSyntax
 import org.orbitmvi.orbit.syntax.simple.intent
-import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty0
-//import kotlin.reflect.full.memberProperties
 
 
-public abstract class ContainerFormHost<STATE : Cloneable<STATE>, SIDE_EFFECT : Any>
+public abstract class ContainerFormHost<STATE : Any, SIDE_EFFECT : Any>
     : ContainerHost<STATE, SIDE_EFFECT>, FormHost<STATE> {
 
     override val stateFlow: StateFlow<STATE> get() = container.stateFlow
@@ -27,13 +25,12 @@ public abstract class ContainerFormHost<STATE : Cloneable<STATE>, SIDE_EFFECT : 
     }
 
     override fun <V : Any> submitField(property: KProperty0<V>, value: V) {
-//        val updated = currentState.clone()
-//        val mutableProperty = updated::class.memberProperties
-//            .filter { it is KMutableProperty1<*, *> }
-//            .find { prop -> prop.name == property.name } as KMutableProperty1<STATE, V>
-//        mutableProperty.set(updated, value)
-//        this.submit(updated)
-        NotImplementedError()
+        val factory = (currentState as? CopyBuilderFactory<*>)
+            ?: error("The value class must be annotated with @KopyBuilder, and be compiled with KopyBuilder Compile Plugin!")
+        val updated = factory.copyBuild {
+            put(property.name, property.get())
+        } as STATE
+        this.submit(updated)
     }
 
     @OptIn(OrbitInternal::class)

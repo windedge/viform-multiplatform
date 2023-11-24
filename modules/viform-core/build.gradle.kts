@@ -11,6 +11,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(libs.kotlinx.coroutines.core)
+        api(libs.kopybuilder.runtime)
       }
     }
   }

@@ -1,18 +1,20 @@
 # Sharing dependency versions between projects
 # https://docs.gradle.org/current/userguide/platforms.html
 [versions]
+kotlin = "1.8.22"
 detekt = "1.22.0"
 dokka = "1.8.10"
 java = "11"
 junit-jupiter = "5.9.3"
 kotest = "5.6.1"
-kotlin = "1.8.20"
-compose = "1.4.1"
+compose = "1.4.3"
 kotlinx-coroutines = "1.6.4"
 kotlinx-serilization = "1.5.1"
 orbitmvi = "4.6.1"
 kotlinpoet = "1.12.0"
 ksp = "1.8.20-1.0.11"
+kopybuilder = "0.1.0-SNAPSHOT"
+viform = "0.1.0-SNAPSHOT"
 
 [libraries]
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
@@ -26,6 +28,7 @@ kotlinx-serilization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializat
 orbitmvi-core = { module = "org.orbit-mvi:orbit-core", version.ref = "orbitmvi" }
 ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
+kopybuilder-runtime = { module = "io.github.windedge.copybuilder:copybuilder-runtime", version.ref = "kopybuilder" }
 
 plugin-android = "com.android.tools.build:gradle:7.4.0"
 plugin-container-tasks = "dev.petuska:container-tasks-gradle-plugin:0.0.4"
@@ -37,6 +40,9 @@ plugin-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref
 plugin-nebula-node = "com.netflix.nebula:nebula-node-plugin:3.0.0"
 plugin-versions = "com.github.ben-manes:gradle-versions-plugin:0.46.0"
 plugin-versions-update = "nl.littlerobots.vcu:plugin:0.8.0"
+
+viform-core = { module = "io.github.windedge.viform:viform-core", version.ref = "viform" }
+viform-test-utils = { module = "io.github.windedge.viform:test-utils", version.ref = "viform" }
 
 [bundles]
 kotest-assertions = [
@@ -50,3 +56,4 @@ plugin-publish = "com.gradle.plugin-publish:1.2.0"
 task-tree = "com.dorongold.task-tree:2.1.1"
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kopybuilder = { id = "io.github.windedge.kopybuilder", version.ref = "kopybuilder" }

@@ -1,27 +1,24 @@
 package local.sandbox
 
-//import io.github.windedge.viform.core.CoreLib
-//import io.github.windedge.viform.dsl.withPlatform
-//import io.github.windedge.viform.dsl.withPlatformSuspend
-import kotlinx.coroutines.runBlocking
-import io.github.windedge.viform.core
+import io.github.windedge.copybuilder.KopyBuilder
+import io.github.windedge.viform.core.Form
+import io.github.windedge.viform.core.platform
+import java.time.LocalDate
+
+@KopyBuilder
+data class Project(val name: String, val startAt: LocalDate)
 
 fun main() {
-/*
-  val core = CoreLib()
-  println(core.sampleApi())
-  println(core.withPlatform("Blocking"))
-  runBlocking {
-    suspendingMain()
-  }
-*/
     println("hello, platform: $platform")
-}
 
-suspend fun suspendingMain() {
-/*
-  val core = CoreLib()
-  println(core.sampleSuspendApi())
-  println(core.withPlatformSuspend("Suspending"))
-*/
+    val project = Project("test", LocalDate.now())
+    val form = Form(project)
+    form.registerField(Project::name)
+    form.registerField(Project::startAt)
+
+    form.setFieldValue(Project::name, "hello")
+    form.setFieldValue(Project::startAt, LocalDate.now().plusDays(1L))
+
+    val newProject = form.pop()
+    println("newProject = ${newProject}")
 }

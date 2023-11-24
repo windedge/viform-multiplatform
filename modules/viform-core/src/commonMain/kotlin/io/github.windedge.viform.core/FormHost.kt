@@ -4,7 +4,7 @@ package io.github.windedge.viform.core
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.reflect.KProperty0
 
-public interface FormHost<T : Cloneable<T>> {
+public interface FormHost<T : Any> {
 
     public val form: Form<T>
 
@@ -17,7 +17,7 @@ public interface FormHost<T : Cloneable<T>> {
     public fun <V : Any> submitField(property: KProperty0<V>, value: V)
 }
 
-public fun <T : Cloneable<T>> FormHost<T>.form(build: FormBuilder<T>.() -> Unit): Form<T> {
+public fun <T : Any> FormHost<T>.form(build: FormBuilder<T>.() -> Unit): Form<T> {
     val form = FormImpl(currentState)
     val builder = FormBuilderImpl(form)
     builder.build()

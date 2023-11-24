@@ -10,9 +10,8 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(project(":modules:viform-core"))
+        api(project(":modules:viform-core"))
         implementation(libs.kotlinx.coroutines.core)
-
         implementation(compose.runtime)
       }
     }
