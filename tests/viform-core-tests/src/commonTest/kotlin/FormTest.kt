@@ -26,7 +26,7 @@ class FormTest {
     fun testFormCreate() {
         val form: Form<Person> = Form(person)
         val formField = form.registerField(Person::name)
-        form.commit(person.copy(name = "world"))
+        form.submit(person.copy(name = "world"))
 
         assertEquals("world", formField.value)
     }

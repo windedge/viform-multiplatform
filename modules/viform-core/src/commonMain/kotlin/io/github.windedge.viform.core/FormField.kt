@@ -1,98 +1,107 @@
 package io.github.windedge.viform.core
 
 
-import kotlinx.coroutines.flow.MutableStateFlow
-
-public sealed class ValidateResult {
-
-    public object None : ValidateResult()
-
-    public object Success : ValidateResult()
-
-    public class Failure(public val message: String) : ValidateResult()
-
-    public fun isSuccess(): Boolean {
-        return this is Success
-    }
-
-    public fun isOk(): Boolean {
-        return this is None || this is Success
-    }
-
-    public fun isFailed(): Boolean {
-        return this is Failure
-    }
-
-    public val errorMessage: String
-        get() {
-            require(this is Failure) { "There is no failure, can't get error message" }
-            return this.message
-        }
-}
+import kotlinx.coroutines.flow.*
+import kotlin.reflect.KProperty0
+import kotlin.reflect.KProperty1
 
 public interface FormField<V : Any?> {
     public val value: V
 
     public val name: String
 
-    public val valueFlow: MutableStateFlow<V>
+    public val valueFlow: StateFlow<V>
 
-    public val resultFlow: MutableStateFlow<ValidateResult>
+    public val resultFlow: StateFlow<ValidateResult>
 
-    public fun addValidator(fieldValidator: FieldValidator<V>)
+    public fun addValidator(validator: FieldValidator<V>)
 
-    public fun setValue(value: V, validate: Boolean = true)
+    public fun clearValidators()
+
+    public fun setValue(value: V, validate: Boolean = false)
+
+    public fun setResult(validateResult: ValidateResult)
 
     public fun validate(): Boolean
 }
 
+public fun <V : Any?> FormField<V>.addValidator(builder: () -> FieldValidator<V>): FormField<V> {
+    val validator = builder()
+    addValidator(validator)
+    return this
+}
 
-internal class FormFieldImpl<T, V : Any?>(override val name: String, initialValue: V) : FormField<V> {
+public fun <T : Any, V> Form<T>.registerField(
+    property: KProperty1<T, V>,
+    build: FormField<V>.() -> Unit
+): FormField<V> {
+    val field = registerField(property)
+    field.build()
+    return field
+}
 
-    override val valueFlow: MutableStateFlow<V> = MutableStateFlow(initialValue)
+public fun <T : Any, V> Form<T>.registerField(
+    property: KProperty0<V>,
+    build: FormField<V>.() -> Unit
+): FormField<V> {
+    val field = registerField(property)
+    field.build()
+    return field
+}
 
-    override val resultFlow: MutableStateFlow<ValidateResult> = MutableStateFlow(ValidateResult.None)
+public fun <V> FormField(name: String, initialValue: V): FormFieldImpl<V> {
+    return FormFieldImpl(name, initialValue)
+}
 
+public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V) : FormField<V> {
+
+    private val _valueFlow: MutableStateFlow<V> = MutableStateFlow(initialValue)
+    override val valueFlow: StateFlow<V> get() = _valueFlow.asStateFlow()
+
+    private val _resultFlow: MutableStateFlow<ValidateResult> = MutableStateFlow(ValidateResult.None)
+    override val resultFlow: StateFlow<ValidateResult> get() = _resultFlow.asStateFlow()
     override val value: V get() = valueFlow.value
 
     private val validators = mutableListOf<FieldValidator<V>>()
 
-    override fun addValidator(fieldValidator: FieldValidator<V>) {
-        validators.add(fieldValidator)
+    override fun addValidator(validator: FieldValidator<V>) {
+        validators.add(validator)
+    }
+
+    override fun clearValidators() {
+        validators.clear()
     }
 
     override fun setValue(value: V, validate: Boolean) {
-        valueFlow.value = value
-        resultFlow.value = ValidateResult.None
+        _valueFlow.value = value
+        _resultFlow.value = ValidateResult.None
 
         if (validate) {
             validate()
         }
     }
 
-    override fun validate(): Boolean {
-        if (value == null) {
-            return if (isNullable()) {
-                resultFlow.value = ValidateResult.Success
-                true
-            } else {
-                resultFlow.value = ValidateResult.Failure("Value can't be null, field: ${this.name}")
-                false
-            }
-        }
-
-        val results = validators.filterNot { it is Nullable }.map { it.validate(value) }
-        val success = results.all { it.isSuccess() }
-        return if (success) {
-            resultFlow.value = ValidateResult.Success
-            true
-        } else {
-            resultFlow.value = results.first { it is ValidateResult.Failure }
-            false
-        }
+    override fun setResult(validateResult: ValidateResult) {
+        _resultFlow.value = validateResult
     }
 
-    private fun isNullable(): Boolean {
-        return validators.any { it is Nullable }
+    override fun validate(): Boolean {
+        val value = value
+        var results = validators.map { it.preview(value) }
+        val noise = results.find { it != ValidateResult.None }
+        if (noise != null) {
+            _resultFlow.value = noise
+            return noise.isRealSuccess
+        }
+
+        results = validators.map { it.validate(value) }
+        val isOk = results.all { it.isSuccess }
+        return if (isOk) {
+            _resultFlow.value = ValidateResult.Success
+            true
+        } else {
+            _resultFlow.value = results.first { it is ValidateResult.Failure }
+            false
+        }
     }
 }

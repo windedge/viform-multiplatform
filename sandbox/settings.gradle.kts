@@ -4,6 +4,7 @@ pluginManagement {
     gradlePluginPortal()
     google()
     mavenCentral()
+    maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
   }
 }
 
@@ -33,3 +34,5 @@ includeBuild("../") {
   }
 }
 includeBuild("../build-conventions")
+
+include(":todoapp", ":signupapp")

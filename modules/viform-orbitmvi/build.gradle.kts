@@ -10,8 +10,8 @@ kotlin {
     commonMain {
       dependencies {
         api(project(":modules:viform-core"))
+        api(libs.orbitmvi.core)
         implementation(libs.kotlinx.coroutines.core)
-        implementation(libs.orbitmvi.core)
       }
     }
   }

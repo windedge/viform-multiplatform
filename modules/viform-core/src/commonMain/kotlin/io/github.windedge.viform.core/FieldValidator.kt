@@ -2,102 +2,286 @@ package io.github.windedge.viform.core
 
 
 public interface FieldValidator<V> {
-    public fun validate(input: V): ValidateResult
+    public fun preview(input: V): ValidateResult = ValidateResult.None
+    public fun validate(input: V): ValidateResult = ValidateResult.None
+    public val errorMessage: String?
 }
 
-public fun <V> Custom(validation: (V) -> Boolean, errorMessage: String? = null): Custom<V> {
-    val block = { input: V ->
-        val success = validation(input)
-        val result = if (success) {
-            ValidateResult.Success
-        } else {
-            ValidateResult.Failure("Validation failed, value: $input")
+public class Nullable<V>(override val errorMessage: String? = null) : FieldValidator<V> {
+    override fun preview(input: V): ValidateResult {
+        if (input == null) {
+            return ValidateResult.Success
         }
-        result
+        return ValidateResult.None
     }
-    return Custom(block, errorMessage)
 }
 
-public class Custom<V>(public val validation: (V) -> ValidateResult, private val errorMessage: String? = null) : FieldValidator<V> {
+public abstract class LogicalValidator<V> : FieldValidator<V> {
+    public abstract fun validateFunc(input: V): ValidateResult
+
+    override fun preview(input: V): ValidateResult = ValidateResult.None
+
+    override fun validate(input: V): ValidateResult = validateFunc(input)
+}
+
+public class Not<V>(
+    private val validator: FieldValidator<V>, override val errorMessage: String? = null
+) : LogicalValidator<V>() {
+
+    override fun validateFunc(input: V): ValidateResult {
+        val result = validator.validate(input)
+        if (result.isSuccess) {
+            return ValidateResult.Failure(errorMessage ?: "Value: $input do not satisfy the negative validation")
+        }
+        return ValidateResult.Success
+    }
+
+}
+
+public class AnyOf<V>(
+    private vararg val validators: FieldValidator<V>, override val errorMessage: String? = null
+) : LogicalValidator<V>() {
+    override fun validateFunc(input: V): ValidateResult {
+        val results = validators.map { it.validate(input) }
+        val success = results.any { it.isSuccess }
+        if (success) {
+            return ValidateResult.Success
+        }
+
+        return results.first { it.isFailure }
+    }
+}
+
+public class AllOf<V>(
+    private vararg val validators: FieldValidator<V>, override val errorMessage: String? = null
+) : LogicalValidator<V>() {
+    override fun validateFunc(input: V): ValidateResult {
+        val results = validators.map { it.validate(input) }
+        val success = results.all { it.isSuccess }
+        if (success) {
+            return ValidateResult.Success
+        }
+
+        return results.first { it.isFailure }
+    }
+}
+
+public class NoneOf<V>(
+    private vararg val validators: FieldValidator<V>, override val errorMessage: String? = null
+) : LogicalValidator<V>() {
+    override fun validateFunc(input: V): ValidateResult {
+        val results = validators.map { it.validate(input) }
+        val success = results.all { !it.isSuccess }
+        if (success) {
+            return ValidateResult.Success
+        }
+
+        return ValidateResult.Failure(errorMessage ?: "Value: $input do not satisfy all the negative validations")
+    }
+}
+
+
+public class Custom<V>(public val func: (V) -> Boolean, override val errorMessage: String? = null) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
-        val validateResult = validation(input)
-        if (validateResult.isOk()) {
-            return validateResult
+        val success = func(input)
+        if (success) {
+            return ValidateResult.Success
         }
-        if (errorMessage != null) {
-            return ValidateResult.Failure(errorMessage)
-        }
-        return validateResult
+        return ValidateResult.Failure(errorMessage ?: "Validation is failed")
     }
 }
 
-public class Nullable<V> : FieldValidator<V> {
-    override fun validate(input: V): ValidateResult {
-        error("Nulable shouldn't be invoked!")
-    }
-}
-
-public class Required<V> : FieldValidator<V> {
+public class Required<V>(override val errorMessage: String? = null) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
         if (input == null) {
             return ValidateResult.Failure("Value can't be null")
         }
         if (input is String && input.isEmpty()) {
-            return ValidateResult.Failure("Value can't be empty")
+            return ValidateResult.Failure(errorMessage ?: "Should't be empty")
         }
         return ValidateResult.Success
     }
 }
 
-public class Or<V>(private val left: FieldValidator<V>, private val right: FieldValidator<V>) : FieldValidator<V> {
+public class Equals<V>(private val value: V, override val errorMessage: String? = null) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
-        val result1 = left.validate(input)
-        val result2 = right.validate(input)
-
-        if (result1.isSuccess() && result2.isSuccess()) {
+        if (input == value) {
             return ValidateResult.Success
         }
-
-        if (result1.isFailed()) return result1
-        if (result2.isFailed()) return result2
-
-        return ValidateResult.Success
+        return ValidateResult.Failure(errorMessage ?: "Should be equals to $value")
     }
 }
 
-public class Numeric : FieldValidator<String> {
+
+public class Numeric(override val errorMessage: String? = null) : FieldValidator<String> {
     override fun validate(input: String): ValidateResult {
         if (input.isNumeric()) {
             return ValidateResult.Success
         }
-        return ValidateResult.Failure("Value is not a number")
+        return ValidateResult.Failure(errorMessage ?: "Shoud be a number")
     }
 }
 
-public class StringBetween(public val minValue: Int, public val maxValue: Int) : FieldValidator<String> {
+public class Checked(override val errorMessage: String? = null) : FieldValidator<Boolean> {
+    override fun validate(input: Boolean): ValidateResult {
+        if (input) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Should be checked")
+    }
+}
+
+public class Optional<V : String?>(override val errorMessage: String? = null) : FieldValidator<V> {
+    override fun preview(input: V): ValidateResult {
+        if (input.isNullOrEmpty()) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.None
+    }
+}
+
+public class Blank(override val errorMessage: String?) : FieldValidator<String> {
     override fun validate(input: String): ValidateResult {
-        val value = input.toDoubleOrNull() ?: return ValidateResult.Failure("Value is not a number")
-        if (value >= minValue && value <= maxValue) {
+        if (input.isBlank()) {
             return ValidateResult.Success
         }
-        return ValidateResult.Failure("Value should be between $minValue and $maxValue")
+        return ValidateResult.Failure(errorMessage ?: "Should be blank string")
     }
 }
 
-public class IntBetween(public val minValue: Int, public val maxValue: Int) : FieldValidator<Int> {
-    override fun validate(input: Int): ValidateResult {
-        if (input in minValue..maxValue) {
+public class NotBlank(override val errorMessage: String?) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.isNotBlank()) {
             return ValidateResult.Success
         }
-        return ValidateResult.Failure("Value should be between $minValue and $maxValue")
+        return ValidateResult.Failure(errorMessage ?: "Should not be blank string")
     }
 }
 
-public class DoubleBetween(public val minValue: Double, public val maxValue: Double) : FieldValidator<Double> {
-    override fun validate(input: Double): ValidateResult {
-        if (input in minValue..maxValue) {
+public class Empty(override val errorMessage: String?) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.isEmpty()) {
             return ValidateResult.Success
         }
-        return ValidateResult.Failure("Value should be between $minValue and $maxValue")
+        return ValidateResult.Failure(errorMessage ?: "Should be empty string")
+    }
+}
+
+public class NotEmpty(override val errorMessage: String?) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.isNotEmpty()) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Should not be empty string")
+    }
+}
+
+public class MatchesRegex(
+    private val regex: Regex, override val errorMessage: String? = null
+) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.matches(regex)) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "`${input}` does not match the specified regular expression")
+    }
+}
+
+public fun MatchesRegex(regex: String, errorMessage: String? = null): MatchesRegex {
+    return MatchesRegex(Regex(regex), errorMessage)
+}
+
+public class AlphaNumeric(override val errorMessage: String? = null) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.isAlphaNumeric()) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Should be an alpha numeric string")
+    }
+}
+
+private val emailRegex = Regex(
+    "^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^-]+(?:\\.[a-zA-Z0-9_!#$%&’*+/=?`{|}~^-]+)*@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]{2,})*$"
+)
+
+public class Email(override val errorMessage: String? = null) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.matches(emailRegex)) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Should be an email")
+    }
+}
+
+public class MinLength(private val minLength: Int, override val errorMessage: String? = null) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.length < minLength) {
+            return ValidateResult.Failure("Should be more than $minLength characters")
+        }
+        return ValidateResult.Success
+    }
+}
+
+public class MaxLength(private val maxLength: Int, override val errorMessage: String? = null) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.length > maxLength) {
+            return ValidateResult.Failure("Should be less than $maxLength characters")
+        }
+        return ValidateResult.Success
+    }
+}
+
+public class LengthBetween(
+    private val minLength: Int, private val maxLength: Int, override val errorMessage: String? = null
+) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.length < minLength || input.length > maxLength) {
+            return ValidateResult.Failure("Should be in $minLength - $maxLength characters")
+        }
+        return ValidateResult.Success
+    }
+}
+
+public class GreaterThan<V : Comparable<V>>(
+    private val value: V, override val errorMessage: String? = null
+) : FieldValidator<V> {
+    override fun validate(input: V): ValidateResult {
+        if (input > value) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Should be greater than $value")
+    }
+}
+
+public class GreaterThanOrEquals<V : Comparable<V>>(
+    private val value: V, override val errorMessage: String? = null
+) : FieldValidator<V> {
+    override fun validate(input: V): ValidateResult {
+        if (input >= value) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Should be greater than or equals to $value")
+    }
+}
+
+public class LesserThan<V : Comparable<V>>(
+    private val value: V, override val errorMessage: String? = null
+) : FieldValidator<V> {
+    override fun validate(input: V): ValidateResult {
+        if (input < value) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Should be lesser than $value")
+    }
+}
+
+public class LesserThanOrEquals<V : Comparable<V>>(
+    private val value: V, override val errorMessage: String? = null
+) : FieldValidator<V> {
+    override fun validate(input: V): ValidateResult {
+        if (input <= value) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Should be lesser than or equals to $value")
     }
 }

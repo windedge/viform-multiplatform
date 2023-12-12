@@ -1,8 +1,9 @@
 package io.github.windedge.viform.core
 
 
-import io.github.windedge.copybuilder.CopyBuilderFactory
+import io.github.windedge.copybuilder.CopyBuilderHost
 import kotlin.reflect.*
+
 
 public interface Form<T : Any> {
 
@@ -10,19 +11,25 @@ public interface Form<T : Any> {
 
     public fun <V : Any?> registerField(property: KProperty0<V>): FormField<V>
 
-    public fun <V : Any?> getFormField(property: KProperty1<T, V>): FormField<V>
+    public fun <V : Any?> getField(property: KProperty1<T, V>): FormField<V>
 
-    public fun <V : Any?> getFormField(property: KProperty0<V>): FormField<V>
+    public fun <V : Any?> getField(property: KProperty0<V>): FormField<V>
 
-    public fun <V : Any?> setFieldValue(property: KProperty1<T, V>, value: V, validate: Boolean = true)
+    public fun <V : Any?> setFieldValue(property: KProperty1<T, V>, value: V, validate: Boolean = false)
 
-    public fun <V : Any?> setFieldValue(property: KProperty0<V>, value: V, validate: Boolean = true)
+    public fun <V : Any?> setFieldValue(property: KProperty0<V>, value: V, validate: Boolean = false)
+
+    public fun containsField(name: String): Boolean
+
+    public val fields: List<FormField<*>>
 
     public fun validate(): Boolean
 
-    public fun commit(formData: T, validate: Boolean = true): Boolean
+    public fun submit(formData: T, validate: Boolean = true): Boolean
 
-    public fun pop(target: T? = null): T
+    public fun pop(): T
+
+    public fun reset()
 }
 
 public interface FormBuilder<T : Any> {
@@ -36,22 +43,27 @@ public fun <T : Any> Form(initialState: T): Form<T> {
 internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
     private val fieldsMap = mutableMapOf<String, FormField<*>>()
 
+    override val fields: List<FormField<*>> get() = fieldsMap.values.toList()
+
     override fun <V : Any?> registerField(property: KProperty1<T, V>): FormField<V> {
         val initialValue = property.get(initialState)
-        val formField = FormFieldImpl<T, V>(property.name, initialValue)
+        val formField = FormFieldImpl(property.name, initialValue)
         fieldsMap[property.name] = formField
         return formField
     }
 
     override fun <V> registerField(property: KProperty0<V>): FormField<V> {
+        if (fieldsMap.containsKey(property.name)) {
+            error("The field cannot be registered duplicately, field: ${property.name}")
+        }
         val initialValue = property.get()
-        val formField = FormFieldImpl<T, V>(property.name, initialValue)
+        val formField = FormFieldImpl(property.name, initialValue)
         fieldsMap[property.name] = formField
         return formField
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <V : Any?> getFormField(property: KProperty1<T, V>): FormField<V> {
+    override fun <V : Any?> getField(property: KProperty1<T, V>): FormField<V> {
         if (fieldsMap.containsKey(property.name)) {
             return fieldsMap[property.name] as FormField<V>
         }
@@ -59,7 +71,7 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <V> getFormField(property: KProperty0<V>): FormField<V> {
+    override fun <V> getField(property: KProperty0<V>): FormField<V> {
         if (fieldsMap.containsKey(property.name)) {
             return fieldsMap[property.name] as FormField<V>
         }
@@ -67,13 +79,17 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
     }
 
     override fun <V> setFieldValue(property: KProperty0<V>, value: V, validate: Boolean) {
-        val formField = getFormField(property)
+        val formField = getField(property)
         formField.setValue(value, validate)
     }
 
     override fun <V> setFieldValue(property: KProperty1<T, V>, value: V, validate: Boolean) {
-        val formField = getFormField(property)
+        val formField = getField(property)
         formField.setValue(value, validate)
+    }
+
+    override fun containsField(name: String): Boolean {
+        return fieldsMap.containsKey(name)
     }
 
     override fun validate(): Boolean {
@@ -82,34 +98,46 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun commit(formData: T, validate: Boolean): Boolean {
-        if (formData !is CopyBuilderFactory<*>) {
-            error("The value class must be annotated with @KopyBuilder, and be compiled with KopyBuilder Compile Plugin!")
+    override fun submit(formData: T, validate: Boolean): Boolean {
+        if (formData !is CopyBuilderHost<*>) {
+            error("CopyBuilder is not implemented, please apply the `KopyBuilder` plugin")
         }
 
-        val builder = (formData as CopyBuilderFactory<*>).toCopyBuilder()
-        fieldsMap.forEach {
-            val value = builder.get(it.key)
+        val builder = (formData as CopyBuilderHost<T>).toCopyBuilder()
+        fieldsMap.filter { builder.contains(it.key) }.forEach {
             val field = it.value as FormField<Any?>
-            field.setValue(value, validate)
+            val value = builder.get(it.key)
+            field.setValue(value, false)
         }
+
+        if (validate) return validate()
         return true
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun pop(target: T?): T {
-        val initialState = target ?: this.initialState
-        if (initialState !is CopyBuilderFactory<*>) {
-            error("CopyBuilder is not implemented, may be not using the compiler plugin?")
+    override fun pop(): T {
+        val initialState = this.initialState
+        if (initialState !is CopyBuilderHost<*>) {
+            error("CopyBuilder is not implemented, please apply the `KopyBuilder` plugin")
         }
 
-        val result = (initialState as CopyBuilderFactory<T>).copyBuild {
-            fieldsMap.forEach {
-                put(it.key, it.value.value)
+        if (fieldsMap.isEmpty()) {
+            return initialState
+        }
+        val result = (initialState as CopyBuilderHost<T>).copyBuild {
+            fieldsMap.filter {
+                contains(it.key)
+            }.forEach { (k, v) ->
+                put(k, v.value)
             }
         }
         return result
     }
+
+    override fun reset() {
+        this.submit(this.initialState, validate = false)
+    }
+
 }
 
 internal class FormBuilderImpl<T : Any>(val form: Form<T>) : FormBuilder<T> {

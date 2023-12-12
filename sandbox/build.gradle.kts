@@ -1,18 +1,11 @@
-plugins {
-  id("convention.jvm")
-  kotlin("jvm") version libs.versions.kotlin.get()
-  alias(libs.plugins.kopybuilder)
-  application
-}
-
 description = "Local consumer sandbox"
 
-application {
-  mainClass.set("local.sandbox.MainKt")
-}
+subprojects {
+  repositories {
+    mavenLocal()
+    google()
+    mavenCentral()
+//    maven("https://s01.oss.sonatype.org/content/repositories/snapshots")
+  }
 
-dependencies {
-  implementation(libs.kotlinx.coroutines.core)
-  implementation(libs.viform.core)
-  testImplementation(libs.viform.test.utils)
 }
