@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.*
 import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
 
-public interface FormField<V : Any?> {
+public interface FormField<V : Any?> : ValidatorContainer<V> {
     public val value: V
 
     public val name: String
@@ -14,21 +14,11 @@ public interface FormField<V : Any?> {
 
     public val resultFlow: StateFlow<ValidateResult>
 
-    public fun addValidator(validator: FieldValidator<V>)
-
-    public fun clearValidators()
-
     public fun setValue(value: V, validate: Boolean = false)
 
-    public fun setResult(validateResult: ValidateResult)
-
     public fun validate(): Boolean
-}
 
-public fun <V : Any?> FormField<V>.addValidator(builder: () -> FieldValidator<V>): FormField<V> {
-    val validator = builder()
-    addValidator(validator)
-    return this
+    public fun setResult(validateResult: ValidateResult)
 }
 
 public fun <T : Any, V> Form<T>.registerField(
@@ -71,6 +61,8 @@ public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V)
     override fun clearValidators() {
         validators.clear()
     }
+
+    override fun getValidators(): List<FieldValidator<V>> = validators.toList()
 
     override fun setValue(value: V, validate: Boolean) {
         _valueFlow.value = value

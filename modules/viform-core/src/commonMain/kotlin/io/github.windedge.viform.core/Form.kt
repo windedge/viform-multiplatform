@@ -32,12 +32,15 @@ public interface Form<T : Any> {
     public fun reset()
 }
 
-public interface FormBuilder<T : Any> {
-    public fun <V> field(property: KProperty1<T, V>): FormField<V>
-}
-
 public fun <T : Any> Form(initialState: T): Form<T> {
     return FormImpl(initialState)
+}
+
+public fun <T : Any> Form(initialState: T, build: FormBuilder<T>.(T) -> Unit): Form<T> {
+    val form = FormImpl(initialState)
+    val builder = FormBuilder(form)
+    builder.build(form.pop())
+    return form
 }
 
 internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
@@ -140,8 +143,30 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
 
 }
 
-internal class FormBuilderImpl<T : Any>(val form: Form<T>) : FormBuilder<T> {
-    override fun <V> field(property: KProperty1<T, V>): FormField<V> {
+public class FormBuilder<T : Any>(public val form: Form<T>) {
+    public fun <V> field(property: KProperty1<T, V>): FormField<V> {
         return form.registerField(property)
+    }
+
+    public fun <V> field(property: KProperty0<V>): FormField<V> {
+        return form.registerField(property)
+    }
+
+    public fun <V> field(
+        property: KProperty1<T, V>,
+        build: FormField<V>.() -> Unit
+    ): FormField<V> {
+        val field = form.registerField(property)
+        field.build()
+        return field
+    }
+
+    public fun <V> field(
+        property: KProperty0<V>,
+        build: FormField<V>.() -> Unit
+    ): FormField<V> {
+        val field = form.registerField(property)
+        field.build()
+        return field
     }
 }

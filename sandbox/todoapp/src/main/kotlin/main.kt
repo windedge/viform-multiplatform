@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.github.windedge.copybuilder.KopyBuilder
-import io.github.windedge.viform.compose.useForm
-import io.github.windedge.viform.core.SimpleFormHost
+import io.github.windedge.viform.compose.use
+import io.github.windedge.viform.core.Form
 
 fun main() = application {
     Window(onCloseRequest = ::exitApplication, title = "Todo") {
@@ -39,8 +39,8 @@ data class TodoList(val todos: List<Todo> = emptyList())
 @Preview
 @Composable
 fun TodoApp() {
-    val formHost = SimpleFormHost<TodoList>(TodoList())
-    formHost.useForm {
+    val form = Form(TodoList())
+    form.use {
         field(it::todos) {
             Column(
                 modifier = Modifier.fillMaxSize().padding(top = 50.dp),

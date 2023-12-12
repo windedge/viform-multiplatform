@@ -27,27 +27,27 @@ import io.github.windedge.viform.core.*
 
 
 fun main() = application {
-    val form = Form(Signup()).apply {
-        registerField(Signup::name) {
+    val form = Form(Signup()) {
+        field(it::name) {
             required("User name is required.")
             isAlphaNumeric()
         }
-        registerField(Signup::email).optional {
+        field(it::email).optional {
             isEmail()
         }
-        registerField(Signup::age).nullable {
+        field(it::age).nullable {
             greaterThan(0)
         }
-        registerField(Signup::password).required().lengthBetween(8, 20)    // chained style
-        registerField(Signup::confirmPassword) {
+        field(it::password).required().lengthBetween(8, 20)    // chained style
+        field(it::confirmPassword) {
             required()
             lengthBetween(8, 20)
             custom("Passwords must be the same.") {
-                val password = this@apply.getField(Signup::password).value
+                val password = form.getField(Signup::password).value
                 it == password
             }
         }
-        registerField(Signup::accept) {
+        field(it::accept) {
             isChecked("Your must accept the terms of agreement.")
         }
     }

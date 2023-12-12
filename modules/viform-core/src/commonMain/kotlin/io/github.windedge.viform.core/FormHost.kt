@@ -24,13 +24,12 @@ public interface FormHost<T : Any> {
 
 public fun <T : Any> FormHost<T>.form(build: FormBuilder<T>.() -> Unit): Form<T> {
     val form = FormImpl(currentState)
-    val builder = FormBuilderImpl(form)
+    val builder = FormBuilder(form)
     builder.build()
     return form
 }
 
 public class SimpleFormHost<T : Any>(override val form: Form<T>) : FormHost<T> {
-    public constructor(initialState: T) : this(Form(initialState))
 
     private val _stateFlow: MutableStateFlow<T> = MutableStateFlow(form.pop())
 

@@ -7,14 +7,14 @@ import kotlinx.coroutines.flow.*
 import kotlin.reflect.*
 
 @Composable
-public fun <T : Any> FormHost<T>.useForm(content: @Composable FormScope<T>.(T) -> Unit) {
+public inline fun <T : Any> FormHost<T>.useForm(content: @Composable FormScope<T>.(T) -> Unit) {
     val formScope = FormScope(this.form)
     val state = this.stateFlow.collectAsState()
     formScope.content(state.value)
 }
 
 @Composable
-public fun <T : Any> Form<T>.use(content: @Composable FormScope<T>.(T) -> Unit) {
+public inline fun <T : Any> Form<T>.use(content: @Composable FormScope<T>.(T) -> Unit) {
     val host = SimpleFormHost(this)
     host.useForm(content)
 }

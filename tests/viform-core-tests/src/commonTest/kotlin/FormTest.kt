@@ -1,31 +1,23 @@
-package io.github.windedge.viform.core
+package test
 
-
-import io.github.windedge.copybuilder.KopyBuilder
+import io.github.windedge.viform.core.Form
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
-@KopyBuilder
-data class Person(
-    val name: String,
-    val age: Int?,
-)
-
-
 class FormTest {
-    lateinit var person: Person
+    lateinit var person: User
 
     @BeforeTest
     fun setup() {
-        person = Person("hello", 1)
+        person = User("hello", 1)
     }
 
     @Test
     fun testFormCreate() {
-        val form: Form<Person> = Form(person)
-        val formField = form.registerField(Person::name)
+        val form: Form<User> = Form(person)
+        val formField = form.registerField(User::name)
         form.submit(person.copy(name = "world"))
 
         assertEquals("world", formField.value)
