@@ -148,10 +148,6 @@ public class FormBuilder<T : Any>(public val form: Form<T>) {
         return form.registerField(property)
     }
 
-    public fun <V> field(property: KProperty0<V>): FormField<V> {
-        return form.registerField(property)
-    }
-
     public fun <V> field(
         property: KProperty1<T, V>,
         build: FormField<V>.() -> Unit
@@ -161,12 +157,19 @@ public class FormBuilder<T : Any>(public val form: Form<T>) {
         return field
     }
 
-    public fun <V> field(
-        property: KProperty0<V>,
-        build: FormField<V>.() -> Unit
-    ): FormField<V> {
-        val field = form.registerField(property)
-        field.build()
-        return field
+    /*
+
+    public fun <V> field(property: KProperty0<V>): FormField<V> {
+        return form.registerField(property)
     }
+
+        public fun <V> field(
+            property: KProperty0<V>,
+            build: FormField<V>.() -> Unit
+        ): FormField<V> {
+            val field = form.registerField(property)
+            field.build()
+            return field
+        }
+    */
 }

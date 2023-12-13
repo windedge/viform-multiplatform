@@ -10,8 +10,6 @@ public interface FormField<V : Any?> : ValidatorContainer<V> {
 
     public val value: V
 
-    public val name: String
-
     public val valueFlow: StateFlow<V>
 
     public val resultFlow: StateFlow<ValidateResult>
@@ -19,8 +17,6 @@ public interface FormField<V : Any?> : ValidatorContainer<V> {
     public fun update(value: V, validate: Boolean = false)
 
     public fun validate(): Boolean
-
-    public fun setResult(validateResult: ValidateResult)
 }
 
 public fun <T : Any, V> Form<T>.registerField(
@@ -41,17 +37,18 @@ public fun <T : Any, V> Form<T>.registerField(
     return field
 }
 
+@Suppress("FunctionName")
 public fun <V> FormField(name: String, initialValue: V): FormFieldImpl<V> {
     return FormFieldImpl(name, initialValue)
 }
 
 public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V) : FormField<V> {
-
     private val _valueFlow: MutableStateFlow<V> = MutableStateFlow(initialValue)
     override val valueFlow: StateFlow<V> get() = _valueFlow.asStateFlow()
 
     private val _resultFlow: MutableStateFlow<ValidateResult> = MutableStateFlow(ValidateResult.None)
     override val resultFlow: StateFlow<ValidateResult> get() = _resultFlow.asStateFlow()
+
     override val value: V get() = valueFlow.value
 
     private val validators = mutableListOf<FieldValidator<V>>()
@@ -60,9 +57,7 @@ public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V)
         validators.add(validator)
     }
 
-    override fun clearValidators() {
-        validators.clear()
-    }
+    override fun clearValidators(): Unit = validators.clear()
 
     override fun getValidators(): List<FieldValidator<V>> = validators.toList()
 

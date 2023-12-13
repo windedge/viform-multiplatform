@@ -112,7 +112,6 @@ public class Equals<V>(private val value: V, override val errorMessage: String? 
     }
 }
 
-
 public class Numeric(override val errorMessage: String? = null) : FieldValidator<String> {
     override fun validate(input: String): ValidateResult {
         if (input.isNumeric()) {

@@ -28,26 +28,26 @@ import io.github.windedge.viform.core.*
 
 fun main() = application {
     val form = Form(Signup()) {
-        field(it::name) {
+        field(Signup::name) {
             required("User name is required.")
             isAlphaNumeric()
         }
-        field(it::email).optional {
+        field(Signup::email).optional {
             isEmail()
         }
-        field(it::age).nullable {
+        field(Signup::age).nullable {
             greaterThan(0)
         }
-        field(it::password).required().lengthBetween(8, 20)    // chained style
-        field(it::confirmPassword) {
+        field(Signup::password).required().lengthBetween(8, 20)    // chained style
+        field(Signup::confirmPassword) {
             required()
             lengthBetween(8, 20)
             custom("Passwords must be the same.") {
-                val password = form.getField(Signup::password).value
+                val password = field(Signup::password).value
                 it == password
             }
         }
-        field(it::accept) {
+        field(Signup::accept) {
             isChecked("Your must accept the terms of agreement.")
         }
     }
@@ -70,37 +70,36 @@ fun SignupApp(form: Form<Signup>) {
             Surface(elevation = 5.dp) {
                 Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
                     field(it::name) {
-                        TextInput("User Name: ", value, result.isFailure, result.errorMessage) {
-                            setValue(it, validate = true)
+                        TextInput("User Name: ", currentValue, hasError, errorMessage) {
+                            update(it, validate = true)
                         }
                     }
                     field(it::email) {
-                        watchLazily(800) { validate() }
-                        TextInput("Email:", value ?: "", result.isFailure, result.errorMessage) {
-                            setValue(it)
+                        watchLazily { validate() }
+                        TextInput("Email:", currentValue ?: "", hasError, errorMessage) {
+                            update(it)
                         }
                     }
                     field(it::age).wrapAs(
                         wrap = { it?.toString() },
                         unwrap = { it?.toIntOrNull() },
-                        constraints = { optional { isNumeric() } }
+                        constraints = { optional { isInt() } }
                     ) {
-//                        watchLazily(800) { validate() }
-                        TextInput("Age:", value ?: "", result.isFailure, result.errorMessage) {
-                            setValue(it)
+                        TextInput("Age:", currentValue ?: "", hasError, errorMessage) {
+                            update(it)
                         }
                     }
                     field(it::password) {
-                        watchLazily(800) { if (it.isNotEmpty()) validate() }
-                        TextInput("Password:", value, result.isFailure, result.errorMessage, true) {
-                            setValue(it)
+                        watchLazily { if (it.isNotEmpty()) validate() }
+                        TextInput("Password:", currentValue, hasError, errorMessage, true) {
+                            update(it)
                         }
                     }
 
                     field(it::confirmPassword) {
-                        watchLazily(800) { if (it.isNotEmpty()) validate() }
-                        TextInput("Confirm Password:", value, result.isFailure, result.errorMessage, true) {
-                            setValue(it)
+                        watchLazily { if (it.isNotEmpty()) validate() }
+                        TextInput("Confirm Password:", currentValue, hasError, errorMessage, true) {
+                            update(it)
                         }
                     }
 
@@ -108,9 +107,9 @@ fun SignupApp(form: Form<Signup>) {
             }
 
             field(it::accept) {
-                InputLayout(result.isFailure, result.errorMessage) {
-                    Checkbox(value, onCheckedChange = { setValue(it) })
-                    Text("I accept the terms of the agreement", modifier = Modifier.clickable { setValue(!value) })
+                InputLayout(hasError, errorMessage) {
+                    Checkbox(currentValue, onCheckedChange = { update(it) })
+                    Text("I accept the terms of the agreement", modifier = Modifier.clickable { update(!currentValue) })
                 }
             }
 
@@ -132,9 +131,7 @@ fun SignupApp(form: Form<Signup>) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Text("Your signup's information is: \n${result}")
             }
-
         }
-
     }
 }
 
