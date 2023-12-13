@@ -8,11 +8,9 @@ public sealed class ValidateResult {
 
     public class Failure(public val message: String) : ValidateResult()
 
-    internal val isRealSuccess: Boolean get() = this is Success
-
     public val isSuccess: Boolean get() = this is None || this is Success
 
-    public val isFailure: Boolean get() = this is Failure
+    public val isError: Boolean get() = this is Failure
 
     public val errorMessage: String?
         get() {

@@ -46,12 +46,12 @@ fun TodoApp() {
                 modifier = Modifier.fillMaxSize().padding(top = 50.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val todos: List<Todo> = this@field.value
+                val todos: List<Todo> = this@field.currentValue
 
                 var text by remember { mutableStateOf("") }
                 TodoInput(text, onTextChange = { text = it }, onAdd = {
                     if (text.isNotBlank()) {
-                        setValue(todos + Todo(text.trim()), validate = true)
+                        update(todos + Todo(text.trim()), validate = true)
                         text = ""
                     }
                 })
@@ -60,7 +60,7 @@ fun TodoApp() {
                     val newTodos = todos.mapIndexed { index, todo ->
                         if (index == itemIdx) todo.copy(done = isDone) else todo
                     }
-                    setValue(newTodos, validate = true)
+                    update(newTodos, validate = true)
                 })
             }
         }

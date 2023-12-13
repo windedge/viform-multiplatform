@@ -83,12 +83,12 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
 
     override fun <V> setFieldValue(property: KProperty0<V>, value: V, validate: Boolean) {
         val formField = getField(property)
-        formField.setValue(value, validate)
+        formField.update(value, validate)
     }
 
     override fun <V> setFieldValue(property: KProperty1<T, V>, value: V, validate: Boolean) {
         val formField = getField(property)
-        formField.setValue(value, validate)
+        formField.update(value, validate)
     }
 
     override fun containsField(name: String): Boolean {
@@ -110,7 +110,7 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
         fieldsMap.filter { builder.contains(it.key) }.forEach {
             val field = it.value as FormField<Any?>
             val value = builder.get(it.key)
-            field.setValue(value, false)
+            field.update(value, false)
         }
 
         if (validate) return validate()
@@ -130,8 +130,8 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
         val result = (initialState as CopyBuilderHost<T>).copyBuild {
             fieldsMap.filter {
                 contains(it.key)
-            }.forEach { (k, v) ->
-                put(k, v.value)
+            }.forEach { (name, field) ->
+                put(name, field.value)
             }
         }
         return result

@@ -6,6 +6,8 @@ import kotlin.reflect.KProperty0
 import kotlin.reflect.KProperty1
 
 public interface FormField<V : Any?> : ValidatorContainer<V> {
+    public val name: String
+
     public val value: V
 
     public val name: String
@@ -14,7 +16,7 @@ public interface FormField<V : Any?> : ValidatorContainer<V> {
 
     public val resultFlow: StateFlow<ValidateResult>
 
-    public fun setValue(value: V, validate: Boolean = false)
+    public fun update(value: V, validate: Boolean = false)
 
     public fun validate(): Boolean
 
@@ -64,17 +66,11 @@ public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V)
 
     override fun getValidators(): List<FieldValidator<V>> = validators.toList()
 
-    override fun setValue(value: V, validate: Boolean) {
+    override fun update(value: V, validate: Boolean) {
         _valueFlow.value = value
         _resultFlow.value = ValidateResult.None
 
-        if (validate) {
-            validate()
-        }
-    }
-
-    override fun setResult(validateResult: ValidateResult) {
-        _resultFlow.value = validateResult
+        if (validate) validate()
     }
 
     override fun validate(): Boolean {
@@ -83,7 +79,7 @@ public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V)
         val noise = results.find { it != ValidateResult.None }
         if (noise != null) {
             _resultFlow.value = noise
-            return noise.isRealSuccess
+            return noise is ValidateResult.Success
         }
 
         results = validators.map { it.validate(value) }

@@ -48,7 +48,7 @@ public class AnyOf<V>(
             return ValidateResult.Success
         }
 
-        return results.first { it.isFailure }
+        return results.first { it.isError }
     }
 }
 
@@ -62,7 +62,7 @@ public class AllOf<V>(
             return ValidateResult.Success
         }
 
-        return results.first { it.isFailure }
+        return results.first { it.isError }
     }
 }
 

@@ -88,13 +88,17 @@ public class FormScope<T : Any>(private val form: Form<T>) {
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 public class FieldScope<T : Any, V : Any?>(
-    public val value: V,
-    public val result: ValidateResult,
-    private val onStateChanged: (V, Boolean) -> Unit,
+    public val currentValue: V,
+    private val result: ValidateResult,
+    private val field: FormField<V>,
+    private val onValueChanged: (V, Boolean) -> Unit,
     private val onValidate: () -> Boolean,
 ) {
-    public fun setValue(value: V, validate: Boolean = false) {
-        onStateChanged(value, validate)
+    public val hasError: Boolean get() = result.isError
+    public val errorMessage: String? = result.errorMessage
+
+    public fun update(value: V, validate: Boolean = false) {
+        onValueChanged(value, validate)
     }
 
     public fun validate(): Boolean {
@@ -104,8 +108,8 @@ public class FieldScope<T : Any, V : Any?>(
     @OptIn(FlowPreview::class)
     @Composable
     public fun watchLazily(debouncedTimeoutMills: Long = 800, block: (V) -> Unit) {
-        LaunchedEffect(value) {
-            snapshotFlow { value }.distinctUntilChanged().debounce(debouncedTimeoutMills).collectLatest {
+        LaunchedEffect(currentValue) {
+            snapshotFlow { currentValue }.distinctUntilChanged().debounce(debouncedTimeoutMills).collectLatest {
                 block(it)
             }
         }
