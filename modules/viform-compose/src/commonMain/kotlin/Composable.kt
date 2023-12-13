@@ -23,7 +23,7 @@ public class FormScope<T : Any>(private val form: Form<T>) {
 
     @Composable
     public fun <V : Any?> field(property: KProperty0<V>, content: @Composable FieldScope<T, V>.() -> Unit) {
-        val formField = form.getField(property)
+        val formField = form.getOrRegisterField(property)
 
         val valueState = remember { mutableStateOf(formField.value) }
         val resultState = formField.resultFlow.collectAsState()
@@ -48,7 +48,7 @@ public class FormScope<T : Any>(private val form: Form<T>) {
     }
 
     public fun <V : Any?> field(property: KProperty0<V>): FormField<V> {
-        return form.getField(property)
+        return form.getOrRegisterField(property)
     }
 
     @Composable
@@ -62,7 +62,7 @@ public class FormScope<T : Any>(private val form: Form<T>) {
         val wrapperResultState: MutableState<ValidateResult> = remember { mutableStateOf(ValidateResult.None) }
 
         val wrapperName = "_${name}Wrapped"
-        val wrapperField = form.getField(DummyProperty(wrapperName, wrapperState.value))
+        val wrapperField = form.getOrRegisterField(DummyProperty(wrapperName, wrapperState.value))
         if (constraints != null) {
             remember(constraints) { wrapperField.constraints() } // only add once
         }

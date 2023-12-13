@@ -7,17 +7,13 @@ import kotlin.reflect.*
 
 public interface Form<T : Any> {
 
-    public fun <V : Any?> registerField(property: KProperty1<T, V>): FormField<V>
+    public fun <V : Any?> getOrRegisterField(property: KProperty1<T, V>): FormField<V>
 
-    public fun <V : Any?> registerField(property: KProperty0<V>): FormField<V>
+    public fun <V : Any?> getOrRegisterField(property: KProperty0<V>): FormField<V>
 
-    public fun <V : Any?> getField(property: KProperty1<T, V>): FormField<V>
+    public fun <V : Any?> updateField(property: KProperty1<T, V>, value: V, validate: Boolean = false)
 
-    public fun <V : Any?> getField(property: KProperty0<V>): FormField<V>
-
-    public fun <V : Any?> setFieldValue(property: KProperty1<T, V>, value: V, validate: Boolean = false)
-
-    public fun <V : Any?> setFieldValue(property: KProperty0<V>, value: V, validate: Boolean = false)
+    public fun <V : Any?> updateField(property: KProperty0<V>, value: V, validate: Boolean = false)
 
     public fun containsField(name: String): Boolean
 
@@ -48,14 +44,14 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
 
     override val fields: List<FormField<*>> get() = fieldsMap.values.toList()
 
-    override fun <V : Any?> registerField(property: KProperty1<T, V>): FormField<V> {
+    private fun <V : Any?> registerField(property: KProperty1<T, V>): FormField<V> {
         val initialValue = property.get(initialState)
         val formField = FormFieldImpl(property.name, initialValue)
         fieldsMap[property.name] = formField
         return formField
     }
 
-    override fun <V> registerField(property: KProperty0<V>): FormField<V> {
+    private fun <V> registerField(property: KProperty0<V>): FormField<V> {
         if (fieldsMap.containsKey(property.name)) {
             error("The field cannot be registered duplicately, field: ${property.name}")
         }
@@ -66,7 +62,7 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <V : Any?> getField(property: KProperty1<T, V>): FormField<V> {
+    override fun <V : Any?> getOrRegisterField(property: KProperty1<T, V>): FormField<V> {
         if (fieldsMap.containsKey(property.name)) {
             return fieldsMap[property.name] as FormField<V>
         }
@@ -74,20 +70,20 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <V> getField(property: KProperty0<V>): FormField<V> {
+    override fun <V> getOrRegisterField(property: KProperty0<V>): FormField<V> {
         if (fieldsMap.containsKey(property.name)) {
             return fieldsMap[property.name] as FormField<V>
         }
         return registerField(property)
     }
 
-    override fun <V> setFieldValue(property: KProperty0<V>, value: V, validate: Boolean) {
-        val formField = getField(property)
+    override fun <V> updateField(property: KProperty0<V>, value: V, validate: Boolean) {
+        val formField = getOrRegisterField(property)
         formField.update(value, validate)
     }
 
-    override fun <V> setFieldValue(property: KProperty1<T, V>, value: V, validate: Boolean) {
-        val formField = getField(property)
+    override fun <V> updateField(property: KProperty1<T, V>, value: V, validate: Boolean) {
+        val formField = getOrRegisterField(property)
         formField.update(value, validate)
     }
 
@@ -145,14 +141,14 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
 
 public class FormBuilder<T : Any>(public val form: Form<T>) {
     public fun <V> field(property: KProperty1<T, V>): FormField<V> {
-        return form.registerField(property)
+        return form.getOrRegisterField(property)
     }
 
     public fun <V> field(
         property: KProperty1<T, V>,
         build: FormField<V>.() -> Unit
     ): FormField<V> {
-        val field = form.registerField(property)
+        val field = form.getOrRegisterField(property)
         field.build()
         return field
     }

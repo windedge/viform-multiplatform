@@ -15,13 +15,13 @@ public class FormSchema<T : Any> private constructor() {
 
     private val fieldDescriptors = mutableMapOf<String, FieldDescriptor<T, *>>()
 
-    public fun <V : Any?> registerField(property: KProperty1<T, V>): FieldDescriptor<T, V> {
+    private fun <V : Any?> registerField(property: KProperty1<T, V>): FieldDescriptor<T, V> {
         val fieldDescriptor = FieldDescriptor(property)
         fieldDescriptors[property.name] = fieldDescriptor
         return fieldDescriptor
     }
 
-    public fun <V : Any?> getField(property: KProperty1<T, V>): FieldDescriptor<T, V> {
+    public fun <V : Any?> getOrRegisterField(property: KProperty1<T, V>): FieldDescriptor<T, V> {
         if (fieldDescriptors.containsKey(property.name)) {
             @Suppress("UNCHECKED_CAST")
             return fieldDescriptors[property.name] as FieldDescriptor<T, V>
@@ -36,7 +36,7 @@ public class FormSchema<T : Any> private constructor() {
     public fun buildForm(formData: T): Form<T> {
         val form = FormImpl(formData).apply {
             fieldDescriptors.forEach { (_, fieldDescriptor) ->
-                val formField = this.registerField(fieldDescriptor.property)
+                val formField = this.getOrRegisterField(fieldDescriptor.property)
                 fieldDescriptor.getValidators().forEach {
                     @Suppress("UNCHECKED_CAST")
                     formField.addValidator(it as FieldValidator<Any?>)
@@ -67,14 +67,14 @@ public class FieldDescriptor<T : Any, V>(public val property: KProperty1<T, V>) 
 public class FormSchemaBuilder<T : Any>(private val formSchema: FormSchema<T>) {
 
     public fun <V> field(property: KProperty1<T, V>): FieldDescriptor<T, V> {
-        return formSchema.registerField(property)
+        return formSchema.getOrRegisterField(property)
     }
 
     public fun <V> field(
         property: KProperty1<T, V>,
         build: FieldDescriptor<T, V>.() -> Unit
     ): FieldDescriptor<T, V> {
-        val field = formSchema.registerField(property)
+        val field = formSchema.getOrRegisterField(property)
         field.build()
         return field
     }

@@ -38,15 +38,15 @@ fun main() = application {
         field(Signup::age).nullable {
             greaterThan(0)
         }
-        field(Signup::password).required().lengthBetween(8, 20)    // chained style
-        field(Signup::confirmPassword) {
-            required()
-            lengthBetween(8, 20)
-            custom("Passwords must be the same.") {
+
+        // chained style
+        field(Signup::password).required().lengthBetween(8, 20)
+        field(Signup::confirmPassword).required().lengthBetween(8, 20)
+            .custom("Passwords must be the same.") {
                 val password = field(Signup::password).value
                 it == password
             }
-        }
+
         field(Signup::accept) {
             isChecked("Your must accept the terms of agreement.")
         }
@@ -83,7 +83,7 @@ fun SignupApp(form: Form<Signup>) {
                     field(it::age).wrapAs(
                         wrap = { it?.toString() },
                         unwrap = { it?.toIntOrNull() },
-                        constraints = { optional { isInt() } }
+                        constraints = { optional { isNumeric() } }
                     ) {
                         TextInput("Age:", currentValue ?: "", hasError, errorMessage) {
                             update(it)

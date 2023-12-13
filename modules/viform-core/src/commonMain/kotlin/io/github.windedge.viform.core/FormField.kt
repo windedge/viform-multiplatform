@@ -19,24 +19,6 @@ public interface FormField<V : Any?> : ValidatorContainer<V> {
     public fun validate(): Boolean
 }
 
-public fun <T : Any, V> Form<T>.registerField(
-    property: KProperty1<T, V>,
-    build: FormField<V>.() -> Unit
-): FormField<V> {
-    val field = registerField(property)
-    field.build()
-    return field
-}
-
-public fun <T : Any, V> Form<T>.registerField(
-    property: KProperty0<V>,
-    build: FormField<V>.() -> Unit
-): FormField<V> {
-    val field = registerField(property)
-    field.build()
-    return field
-}
-
 @Suppress("FunctionName")
 public fun <V> FormField(name: String, initialValue: V): FormFieldImpl<V> {
     return FormFieldImpl(name, initialValue)
