@@ -122,6 +122,25 @@ public class Numeric(override val errorMessage: String? = null) : FieldValidator
     }
 }
 
+public class Integer(override val errorMessage: String? = null) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.isInt()) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Shoud be a integer number")
+    }
+}
+
+public class Float(override val errorMessage: String? = null) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.isFloat()) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Shoud be a float number")
+    }
+}
+
+
 public class Checked(override val errorMessage: String? = null) : FieldValidator<Boolean> {
     override fun validate(input: Boolean): ValidateResult {
         if (input) {
@@ -200,13 +219,18 @@ public class AlphaNumeric(override val errorMessage: String? = null) : FieldVali
     }
 }
 
-private val emailRegex = Regex(
-    "^[a-zA-Z0-9_!#$%&’*+/=?`{|}~^-]+(?:\\.[a-zA-Z0-9_!#$%&’*+/=?`{|}~^-]+)*@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]{2,})*$"
-)
+public class Url(override val errorMessage: String? = null) : FieldValidator<String> {
+    override fun validate(input: String): ValidateResult {
+        if (input.isUrl()) {
+            return ValidateResult.Success
+        }
+        return ValidateResult.Failure(errorMessage ?: "Should be an email")
+    }
+}
 
 public class Email(override val errorMessage: String? = null) : FieldValidator<String> {
     override fun validate(input: String): ValidateResult {
-        if (input.matches(emailRegex)) {
+        if (input.isEmail()) {
             return ValidateResult.Success
         }
         return ValidateResult.Failure(errorMessage ?: "Should be an email")

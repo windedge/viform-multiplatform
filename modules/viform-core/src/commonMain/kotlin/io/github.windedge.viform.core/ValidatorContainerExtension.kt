@@ -57,6 +57,12 @@ public fun <V> ValidatorContainer<V>.equals(value: V, errorMessage: String? = nu
 public fun ValidatorContainer<String>.isNumeric(errorMessage: String? = null): ValidatorContainer<String> =
     addValidator { Numeric(errorMessage) }
 
+public fun ValidatorContainer<String>.isInt(errorMessage: String? = null): ValidatorContainer<String> =
+    addValidator { Integer(errorMessage) }
+
+public fun ValidatorContainer<String>.isFloat(errorMessage: String? = null): ValidatorContainer<String> =
+    addValidator { Integer(errorMessage) }
+
 public fun ValidatorContainer<Boolean>.isChecked(errorMessage: String? = null): ValidatorContainer<Boolean> =
     addValidator { Checked(errorMessage) }
 
@@ -92,6 +98,9 @@ public fun ValidatorContainer<String>.matchesRegex(
 
 public fun ValidatorContainer<String>.isAlphaNumeric(errorMessage: String? = null): ValidatorContainer<String> =
     addValidator { AlphaNumeric(errorMessage) }
+
+public fun ValidatorContainer<String>.isUrl(errorMessage: String? = null): ValidatorContainer<String> =
+    addValidator { Url(errorMessage) }
 
 public fun ValidatorContainer<String>.isEmail(errorMessage: String? = null): ValidatorContainer<String> =
     addValidator { Email(errorMessage) }
