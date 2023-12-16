@@ -2,20 +2,17 @@ package io.github.windedge.viform.core
 
 
 import io.github.windedge.copybuilder.CopyBuilderHost
+import kotlinx.coroutines.sync.Mutex
 import kotlin.reflect.*
 
 
 public interface Form<T : Any> {
 
-    public fun <V : Any?> getOrRegisterField(property: KProperty1<T, V>): FormField<V>
-
-    public fun <V : Any?> getOrRegisterField(property: KProperty0<V>): FormField<V>
-
-    public fun <V : Any?> updateField(property: KProperty1<T, V>, value: V, validate: Boolean = false)
-
-    public fun <V : Any?> updateField(property: KProperty0<V>, value: V, validate: Boolean = false)
+    public fun <V> getOrRegisterField(property: KProperty<V>): FormField<V>
 
     public fun containsField(name: String): Boolean
+
+    public fun <V> replaceField(formField: FormField<V>): FormField<V>
 
     public val fields: List<FormField<*>>
 
@@ -35,100 +32,87 @@ public fun <T : Any> Form(initialState: T): Form<T> {
 public fun <T : Any> Form(initialState: T, build: FormBuilder<T>.(T) -> Unit): Form<T> {
     val form = FormImpl(initialState)
     val builder = FormBuilder(form)
-    builder.build(form.pop())
+    builder.build(initialState)
     return form
 }
 
 internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
+    private val mutex = Mutex()
     private val fieldsMap = mutableMapOf<String, FormField<*>>()
 
     override val fields: List<FormField<*>> get() = fieldsMap.values.toList()
 
-    private fun <V : Any?> registerField(property: KProperty1<T, V>): FormField<V> {
-        val initialValue = property.get(initialState)
+    private fun <V> registerField(property: KProperty<V>): FormField<V> {
+        if (fieldsMap.containsKey(property.name)) {
+            error("The field cannot be registered repeatedly, field: ${property.name}")
+        }
+        val initialValue = when (property) {
+            is KProperty0<*> -> (property as KProperty0<V>).get()
+            is KProperty1<*, *> -> @Suppress("UNCHECKED_CAST") (property as KProperty1<T, V>).get(initialState)
+            else -> error("Can't get the value from the property: ${property.name}")
+        }
         val formField = FormFieldImpl(property.name, initialValue)
         fieldsMap[property.name] = formField
         return formField
     }
 
-    private fun <V> registerField(property: KProperty0<V>): FormField<V> {
+    override fun <V> getOrRegisterField(property: KProperty<V>): FormField<V> {
         if (fieldsMap.containsKey(property.name)) {
-            error("The field cannot be registered duplicately, field: ${property.name}")
-        }
-        val initialValue = property.get()
-        val formField = FormFieldImpl(property.name, initialValue)
-        fieldsMap[property.name] = formField
-        return formField
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <V : Any?> getOrRegisterField(property: KProperty1<T, V>): FormField<V> {
-        if (fieldsMap.containsKey(property.name)) {
+            @Suppress("UNCHECKED_CAST")
             return fieldsMap[property.name] as FormField<V>
         }
         return registerField(property)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <V> getOrRegisterField(property: KProperty0<V>): FormField<V> {
-        if (fieldsMap.containsKey(property.name)) {
-            return fieldsMap[property.name] as FormField<V>
-        }
-        return registerField(property)
-    }
-
-    override fun <V> updateField(property: KProperty0<V>, value: V, validate: Boolean) {
-        val formField = getOrRegisterField(property)
-        formField.update(value, validate)
-    }
-
-    override fun <V> updateField(property: KProperty1<T, V>, value: V, validate: Boolean) {
-        val formField = getOrRegisterField(property)
-        formField.update(value, validate)
     }
 
     override fun containsField(name: String): Boolean {
         return fieldsMap.containsKey(name)
     }
 
-    override fun validate(): Boolean {
-        val results = fieldsMap.map { it.key to it.value.validate() }.toMap()
-        return results.all { it.value }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun submit(formData: T, validate: Boolean): Boolean {
-        if (formData !is CopyBuilderHost<*>) {
-            error("CopyBuilder is not implemented, please apply the `KopyBuilder` plugin")
+    override fun <V> replaceField(formField: FormField<V>): FormField<V> {
+        if (!fieldsMap.containsKey(formField.name)) {
+            error("The field is not registered, field: ${formField.name}")
         }
 
-        val builder = (formData as CopyBuilderHost<T>).toCopyBuilder()
+        @Suppress("UNCHECKED_CAST")
+        return fieldsMap.put(formField.name, formField) as FormField<V>
+    }
+
+    override fun validate(): Boolean {
+        return fieldsMap.all { it.value.validate() }
+    }
+
+    override fun submit(formData: T, validate: Boolean): Boolean {
+        @Suppress("UNCHECKED_CAST")
+        formData as? CopyBuilderHost<T>
+            ?: error("CopyBuilder is not implemented, please apply the `KopyBuilder` plugin")
+
+        val builder = formData.toCopyBuilder()
         fieldsMap.filter { builder.contains(it.key) }.forEach {
+            @Suppress("UNCHECKED_CAST")
             val field = it.value as FormField<Any?>
             val value = builder.get(it.key)
-            field.update(value, false)
+            field.setValue(value, false)
         }
 
         if (validate) return validate()
         return true
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun pop(): T {
-        val initialState = this.initialState
-        if (initialState !is CopyBuilderHost<*>) {
-            error("CopyBuilder is not implemented, please apply the `KopyBuilder` plugin")
+        val initialState = this.initialState.also {
+            if (fieldsMap.isEmpty()) return it
         }
 
-        if (fieldsMap.isEmpty()) {
-            return initialState
-        }
-        val result = (initialState as CopyBuilderHost<T>).copyBuild {
-            fieldsMap.filter {
-                contains(it.key)
-            }.forEach { (name, field) ->
-                put(name, field.value)
-            }
+        @Suppress("UNCHECKED_CAST")
+        initialState as? CopyBuilderHost<T>
+            ?: error("CopyBuilder is not implemented, please apply the `KopyBuilder` plugin")
+
+        val result = initialState.copyBuild {
+            fieldsMap
+                .filter { contains(it.key) }
+                .forEach { (name, field) ->
+                    put(name, field.currentValue)
+                }
         }
         return result
     }
@@ -138,6 +122,7 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
     }
 
 }
+
 
 public class FormBuilder<T : Any>(public val form: Form<T>) {
     public fun <V> field(property: KProperty1<T, V>): FormField<V> {

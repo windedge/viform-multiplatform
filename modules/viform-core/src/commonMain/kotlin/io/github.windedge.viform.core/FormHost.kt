@@ -29,7 +29,7 @@ public fun <T : Any> FormHost<T>.form(build: FormBuilder<T>.() -> Unit): Form<T>
     return form
 }
 
-public class SimpleFormHost<T : Any>(override val form: Form<T>) : FormHost<T> {
+public class DefaultFormHost<T : Any>(override val form: Form<T>) : FormHost<T> {
 
     private val _stateFlow: MutableStateFlow<T> = MutableStateFlow(form.pop())
 

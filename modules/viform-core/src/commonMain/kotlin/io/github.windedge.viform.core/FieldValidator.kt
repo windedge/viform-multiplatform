@@ -7,6 +7,11 @@ public interface FieldValidator<V> {
     public val errorMessage: String?
 }
 
+public fun <V> List<FieldValidator<V>>.validateAndGet(input: V): ValidateResult {
+    this.map { it.preview(input) }.find { it != ValidateResult.None }?.let { return it }
+    return this.map { it.validate(input) }.find { it.isError } ?: ValidateResult.Success
+}
+
 public class Nullable<V>(override val errorMessage: String? = null) : FieldValidator<V> {
     override fun preview(input: V): ValidateResult {
         if (input == null) {

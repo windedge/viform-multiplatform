@@ -27,7 +27,8 @@ import io.github.windedge.viform.core.*
 
 
 fun main() = application {
-    val form = Form(Signup()) {
+    val signUp = Signup()
+    val form = Form(signUp) {
         field(Signup::name) {
             required("User name is required.")
             isAlphaNumeric()
@@ -43,15 +44,12 @@ fun main() = application {
         field(Signup::password).required().lengthBetween(8, 20)
         field(Signup::confirmPassword).required().lengthBetween(8, 20)
             .custom("Passwords must be the same.") {
-                val password = field(Signup::password).value
-                it == password
+                it == field(Signup::password).currentValue
             }
-
         field(Signup::accept) {
             isChecked("Your must accept the terms of agreement.")
         }
     }
-
 
     val winState = rememberWindowState(width = 800.dp, height = 700.dp)
     Window(onCloseRequest = ::exitApplication, winState, title = "Sign Up") {
@@ -71,35 +69,44 @@ fun SignupApp(form: Form<Signup>) {
                 Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
                     field(it::name) {
                         TextInput("User Name: ", currentValue, hasError, errorMessage) {
-                            update(it, validate = true)
+                            setValue(it, validate = true)
                         }
                     }
                     field(it::email) {
                         watchLazily { validate() }
                         TextInput("Email:", currentValue ?: "", hasError, errorMessage) {
-                            update(it)
+                            setValue(it)
                         }
                     }
                     field(it::age).wrapAs(
                         wrap = { it?.toString() },
                         unwrap = { it?.toIntOrNull() },
-                        constraints = { optional { isNumeric() } }
+                        constraints = { optional { isNumeric() } },
                     ) {
                         TextInput("Age:", currentValue ?: "", hasError, errorMessage) {
-                            update(it)
+                            setValue(it)
+                        }
+                    }
+                    field(it::age).wrapAs(
+                        wrap = { it?.toString() },
+                        unwrap = { it?.toIntOrNull() },
+                        constraints = { optional { isNumeric() } },
+                    ) {
+                        TextInput("Age:", currentValue ?: "", hasError, errorMessage) {
+                            setValue(it)
                         }
                     }
                     field(it::password) {
                         watchLazily { if (it.isNotEmpty()) validate() }
                         TextInput("Password:", currentValue, hasError, errorMessage, true) {
-                            update(it)
+                            setValue(it)
                         }
                     }
 
                     field(it::confirmPassword) {
                         watchLazily { if (it.isNotEmpty()) validate() }
                         TextInput("Confirm Password:", currentValue, hasError, errorMessage, true) {
-                            update(it)
+                            setValue(it)
                         }
                     }
 
@@ -108,8 +115,8 @@ fun SignupApp(form: Form<Signup>) {
 
             field(it::accept) {
                 InputLayout(hasError, errorMessage) {
-                    Checkbox(currentValue, onCheckedChange = { update(it) })
-                    Text("I accept the terms of the agreement", modifier = Modifier.clickable { update(!currentValue) })
+                    Checkbox(currentValue, onCheckedChange = { setValue(it) })
+                    Text("I accept the terms of the agreement", modifier = Modifier.clickable { setValue(!currentValue) })
                 }
             }
 

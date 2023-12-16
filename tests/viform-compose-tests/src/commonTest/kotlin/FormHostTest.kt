@@ -1,5 +1,4 @@
 import io.github.windedge.copybuilder.KopyBuilder
-import io.github.windedge.viform.compose.use
 import io.github.windedge.viform.compose.useForm
 import io.github.windedge.viform.core.*
 import org.junit.jupiter.api.Test
@@ -24,10 +23,10 @@ class FormHostTest {
             }
         }
 
-        val host = SimpleFormHost(form)
+        val host = DefaultFormHost(form)
         host.useForm {
             field(it::name) {
-                update("hello", true)
+                setValue("hello", true)
             }
         }
         val newUser = host.pop()

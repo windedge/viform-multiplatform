@@ -55,9 +55,10 @@ kotest-assertions = [
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+kotlin-kmp = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 nexus-publish = "io.github.gradle-nexus.publish-plugin:1.3.0"
 plugin-publish = "com.gradle.plugin-publish:1.2.0"
 task-tree = "com.dorongold.task-tree:2.1.1"
-compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kopybuilder = { id = "io.github.windedge.kopybuilder", version.ref = "kopybuilder" }
