@@ -10,7 +10,7 @@ public interface Form<T : Any> {
 
     public fun <V> getOrRegisterField(property: KProperty<V>): FormField<V>
 
-    public fun containsField(name: String): Boolean
+    public fun <V> getField(name: String): FormField<V>?
 
     public fun <V> replaceField(formField: FormField<V>): FormField<V>
 
@@ -37,7 +37,6 @@ public fun <T : Any> Form(initialState: T, build: FormBuilder<T>.(T) -> Unit): F
 }
 
 internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
-    private val mutex = Mutex()
     private val fieldsMap = mutableMapOf<String, FormField<*>>()
 
     override val fields: List<FormField<*>> get() = fieldsMap.values.toList()
@@ -64,8 +63,9 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
         return registerField(property)
     }
 
-    override fun containsField(name: String): Boolean {
-        return fieldsMap.containsKey(name)
+    override fun <V> getField(name: String): FormField<V>? {
+        @Suppress("UNCHECKED_CAST")
+        return fieldsMap[name] as? FormField<V>
     }
 
     override fun <V> replaceField(formField: FormField<V>): FormField<V> {
