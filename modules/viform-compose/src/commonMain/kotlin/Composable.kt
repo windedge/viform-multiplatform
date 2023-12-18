@@ -17,6 +17,7 @@ public inline fun <T : Any> Form<T>.use(content: @Composable FormScope<T>.(T) ->
     DefaultFormHost(this).useForm(content)
 }
 
+
 public class FormScope<T : Any>(private val form: Form<T>) {
 
     @Composable
@@ -52,23 +53,24 @@ public class FormScope<T : Any>(private val form: Form<T>) {
         constraints: ValidatorContainer<R>.() -> Unit = {},
         content: @Composable() (FieldScope<T, R>.() -> Unit),
     ) {
-        val validatable = remember {
-            SimpleValidatorContainer<R>().also { it.constraints() } // only run once
-        }
-
-        val wrappedFormField = this as? WrappedFormField<V> ?: remember {
-            WrappedFormField(this).apply {
+        @Suppress("UNCHECKED_CAST")
+        val wrappedFormField = this as? WrappedFormField<V, R> ?: remember(this.name) {
+            WrappedFormField(this, wrappedType, wrap, unwrap).apply {
                 form.replaceField(this)
             }
         }
+        if (wrappedFormField.wrappedType != wrappedType) {
+            error("Can't wrap as another type!")
+        }
 
-        val handler = wrappedFormField.getOrRegisterHandler(
-            wrappedType, validatable.getValidators(), wrap, unwrap, this.currentValue
-        )
+        remember { wrappedFormField.applyConstraints(constraints) }
+        DisposableEffect(name) {
+            onDispose { form.replaceField(wrappedFormField.origin) }
+        }
 
         val resultState = this.resultFlow.collectAsState(ValidateResult.None)
-        val fieldScope: FieldScope<T, R> = with(handler) {
-            FieldScope(handler.wrappedState.value, resultState.value, ::setWrappedSate, ::validate)
+        val fieldScope: FieldScope<T, R> = with(wrappedFormField) {
+            FieldScope(wrappedState.value, resultState.value, ::setWrappedSate, ::validate, onShowError = ::showError)
         }
         fieldScope.content()
     }
@@ -80,6 +82,7 @@ public class FieldScope<T : Any, V : Any?>(
     private val result: ValidateResult,
     private val onValueChanged: (V, Boolean) -> Unit,
     private val onValidate: () -> Boolean,
+    private val onShowError: (String) -> Unit,
 ) {
     public val hasError: Boolean get() = result.isError
     public val errorMessage: String? = result.errorMessage
@@ -90,6 +93,10 @@ public class FieldScope<T : Any, V : Any?>(
 
     public fun validate(): Boolean {
         return onValidate()
+    }
+
+    public fun showError(message: String) {
+        onShowError(message)
     }
 
     @OptIn(FlowPreview::class)
@@ -103,127 +110,63 @@ public class FieldScope<T : Any, V : Any?>(
     }
 }
 
-internal data class FieldChangeEvent<V>(
-    val value: V,
-    val validate: Boolean,
-    val notifier: Any,
-)
+internal class WrappedFormField<V, R>(
+    val origin: FormField<V>,
+    val wrappedType: KType,
+    val wrap: (V) -> R,
+    val unwrap: (R) -> V
+) : FormField<V> by origin {
 
-internal class WrappedFormField<V>(private val origin: FormField<V>) : FormField<V> by origin {
-    private val handlers = mutableMapOf<Pair<*, *>, WrappedStateHandler<V, *>>()
+    private val wrappedValidators = mutableListOf<FieldValidator<R>>()
 
-    fun <R> getOrRegisterHandler(
-        wrappedType: KType,
-        wrappedValidators: List<FieldValidator<R>>,
-        wrap: (V) -> R,
-        unwrap: (R) -> V,
-        initialvalue: V,
-    ): WrappedStateHandler<V, R> {
-        val key = Pair(name, wrappedType)
-        @Suppress("UNCHECKED_CAST")
-        return handlers.getOrPut(key) {
-            WrappedStateHandler(this, wrappedType, wrappedValidators, wrap, unwrap, initialvalue)
-        } as WrappedStateHandler<V, R>
-    }
-
-    fun notifyFieldChanged(event: FieldChangeEvent<V>) {
-        if (event.notifier != this) {
-            origin.setValue(event.value, event.validate)
-        }
-        handlers.values.forEach {
-            it.handleFieldChanged(event)
-        }
-    }
+    private val _wrappedState: MutableState<R> = mutableStateOf(wrap(currentValue))
+    val wrappedState: State<R> get() = _wrappedState
 
     override fun setValue(value: V, validate: Boolean) {
         origin.setValue(value, false)
-        notifyFieldChanged(FieldChangeEvent(value, false, this))
+        _wrappedState.value = wrap(value)
 
         if (validate) validate()
     }
 
     override fun validate(): Boolean {
-        return origin.validate() && handlers.values.map { it.validate() }.all { it }
-    }
+        val results = listOf(
+            origin.getValidators().validateAndGet(unwrap(_wrappedState.value)),
+            wrappedValidators.validateAndGet(_wrappedState.value)
+        )
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is WrappedFormField<*>) return false
-
-        if (origin != other.origin) return false
-        if (handlers != other.handlers) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = origin.hashCode()
-        result = 31 * result + handlers.hashCode()
-        return result
-    }
-}
-
-internal class WrappedStateHandler<V, R>(
-    private val owner: WrappedFormField<V>,
-    private val wrappedType: KType,
-    private val wrappedValidators: List<FieldValidator<R>>,
-    private val wrap: (V) -> R,
-    private val unwrap: (R) -> V,
-    initialValue: V,
-) {
-    private val _wrappedState: MutableState<R> = mutableStateOf(wrap(initialValue))
-    val wrappedState: State<R> get() = _wrappedState
-
-    fun handleFieldChanged(event: FieldChangeEvent<V>) {
-        if (event.notifier == this) return
-
-        _wrappedState.value = wrap(event.value)
-        if (event.validate) validate()
+        return results.find { it.isError }?.also { origin.setResult(it) }?.isSuccess ?: true
     }
 
     fun setWrappedSate(value: R, validate: Boolean = false) {
         _wrappedState.value = value
+        origin.setValue(unwrap(value), false)
 
-        val event = FieldChangeEvent(unwrap(value), validate, this)
-        owner.notifyFieldChanged(event)
         if (validate) validate()
     }
 
-    fun validate(): Boolean {
-        return wrappedValidators.validateAndGet(_wrappedState.value).also { owner.setResult(it) }.isSuccess
+    fun applyConstraints(constraints: ValidatorContainer<R>.() -> Unit) {
+        val container = SimpleValidatorContainer<R>().apply(constraints)
+        wrappedValidators.addAll(container.getValidators())
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is WrappedStateHandler<*, *>) return false
-
-        if (owner != other.owner) return false
-        if (wrappedType != other.wrappedType) return false
-        if (_wrappedState != other._wrappedState) return false
-        if (wrappedValidators != other.wrappedValidators) return false
-        if (wrap != other.wrap) return false
-        if (unwrap != other.unwrap) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = wrappedType.hashCode()
-        result = 31 * result + _wrappedState.hashCode()
-        result = 31 * result + wrappedValidators.hashCode()
-        result = 31 * result + wrap.hashCode()
-        result = 31 * result + unwrap.hashCode()
-        return result
+    fun showError(errorMessage: String) {
+        setResult(ValidateResult.Failure(errorMessage))
     }
 
 }
 
 internal class SimpleValidatorContainer<V> : ValidatorContainer<V> {
     private val validators = mutableListOf<FieldValidator<V>>()
+
     override fun addValidator(validator: FieldValidator<V>) {
         validators.add(validator)
     }
 
     override fun getValidators(): List<FieldValidator<V>> = validators.toList()
     override fun clearValidators(): Unit = validators.clear()
+
 }
+
+
+internal class ValidateException(override val message: String) : Exception(message)

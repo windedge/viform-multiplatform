@@ -81,16 +81,7 @@ fun SignupApp(form: Form<Signup>) {
                     field(it::age).wrapAs(
                         wrap = { it?.toString() },
                         unwrap = { it?.toIntOrNull() },
-                        constraints = { optional { isNumeric() } },
-                    ) {
-                        TextInput("Age:", currentValue ?: "", hasError, errorMessage) {
-                            setValue(it)
-                        }
-                    }
-                    field(it::age).wrapAs(
-                        wrap = { it?.toString() },
-                        unwrap = { it?.toIntOrNull() },
-                        constraints = { optional { isNumeric() } },
+                        constraints = { optional { isInt() } },
                     ) {
                         TextInput("Age:", currentValue ?: "", hasError, errorMessage) {
                             setValue(it)
@@ -128,7 +119,7 @@ fun SignupApp(form: Form<Signup>) {
                     Text("Reset", color = Color.White)
                 }
             } else {
-                Button(onClick = { if (form.validate()) signedUp = true }) {
+                Button(onClick = { signedUp = form.validate() }) {
                     Text("Sign up", color = Color.White)
                 }
             }
