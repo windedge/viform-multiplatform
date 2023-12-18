@@ -17,8 +17,7 @@ public inline fun <T : Any> Form<T>.use(content: @Composable FormScope<T>.(T) ->
     DefaultFormHost(this).useForm(content)
 }
 
-
-public class FormScope<T : Any>(private val form: Form<T>) {
+public class FormScope<T : Any>(public val form: Form<T>) {
 
     @Composable
     public fun <V : Any?> field(property: KProperty0<V>): FormField<V> {
@@ -89,6 +88,10 @@ public class FieldScope<T : Any, V : Any?>(
 
     public fun setValue(value: V, validate: Boolean = false) {
         onValueChanged(value, validate)
+    }
+
+    public fun setValue(value: V) {
+        onValueChanged(value, false)
     }
 
     public fun validate(): Boolean {

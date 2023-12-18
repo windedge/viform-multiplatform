@@ -1,6 +1,6 @@
 package io.github.windedge.viform.core
 
-public interface ValidatorContainer<V : Any?> {
+public interface ValidatorContainer<V> {
 
     public fun addValidator(validator: FieldValidator<V>)
 
@@ -9,4 +9,3 @@ public interface ValidatorContainer<V : Any?> {
     public fun clearValidators()
 
 }
-

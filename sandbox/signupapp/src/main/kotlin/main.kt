@@ -26,35 +26,35 @@ import io.github.windedge.viform.compose.use
 import io.github.windedge.viform.core.*
 
 
-fun main() = application {
-    val signUp = Signup()
-    val form = Form(signUp) {
-        field(Signup::name) {
-            required("User name is required.")
-            isAlphaNumeric()
-        }
-        field(Signup::email).optional {
-            isEmail()
-        }
-        field(Signup::age).nullable {
-            greaterThan(0)
-        }
-
-        // chained style
-        field(Signup::password).required().lengthBetween(8, 20)
-        field(Signup::confirmPassword).required().lengthBetween(8, 20)
-            .custom("Passwords must be the same.") {
-                it == field(Signup::password).currentValue
-            }
-        field(Signup::accept) {
-            isChecked("Your must accept the terms of agreement.")
-        }
+val schema = FormSchema.create {
+    field(Signup::name) {
+        required("User name is required.")
+        isAlphaNumeric()
+    }
+    field(Signup::email).optional {
+        isEmail()
+    }
+    field(Signup::age).nullable {
+        greaterThan(0)
     }
 
+    // chained style
+    field(Signup::password).required().lengthBetween(8, 20)
+    field(Signup::confirmPassword).required().lengthBetween(8, 20)
+        .custom("Passwords must be the same.") {
+            it == field(Signup::password).currentValue
+        }
+    field(Signup::accept) {
+        isChecked("Your must accept the terms of agreement.")
+    }
+}
+
+fun main() = application {
     val winState = rememberWindowState(width = 800.dp, height = 700.dp)
     Window(onCloseRequest = ::exitApplication, winState, title = "Sign Up") {
         MaterialTheme {
             Box(modifier = Modifier.fillMaxSize(), Alignment.Center) {
+                val form = schema.buildForm(Signup())
                 SignupApp(form)
             }
         }
@@ -62,15 +62,15 @@ fun main() = application {
 }
 
 @Composable
-fun SignupApp(form: Form<Signup>) {
-    form.use {
+fun SignupApp(signupForm: Form<Signup>) {
+    signupForm.use {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Surface(elevation = 5.dp) {
                 Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)) {
                     field(it::name) {
-                        TextInput("User Name: ", currentValue, hasError, errorMessage) {
+                        TextInput("User Name: ", currentValue, hasError, errorMessage, onValueChange = {
                             setValue(it, validate = true)
-                        }
+                        })
                     }
                     field(it::email) {
                         watchLazily { validate() }
@@ -107,7 +107,8 @@ fun SignupApp(form: Form<Signup>) {
             field(it::accept) {
                 InputLayout(hasError, errorMessage) {
                     Checkbox(currentValue, onCheckedChange = { setValue(it) })
-                    Text("I accept the terms of the agreement", modifier = Modifier.clickable { setValue(!currentValue) })
+                    Text("I accept the terms of the agreement",
+                        modifier = Modifier.clickable { setValue(!currentValue) })
                 }
             }
 
