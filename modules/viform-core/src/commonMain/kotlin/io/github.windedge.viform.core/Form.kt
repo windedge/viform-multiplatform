@@ -78,7 +78,7 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
     }
 
     override fun validate(): Boolean {
-        return fieldsMap.all { it.value.validate() }
+        return fieldsMap.values.map { it.validate() }.all { it }
     }
 
     override fun submit(formData: T, validate: Boolean): Boolean {
