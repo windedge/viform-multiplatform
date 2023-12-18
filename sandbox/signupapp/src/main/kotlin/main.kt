@@ -40,10 +40,13 @@ val schema = FormSchema.create {
 
     // chained style
     field(Signup::password).required().lengthBetween(8, 20)
+
+    //custom rule
     field(Signup::confirmPassword).required().lengthBetween(8, 20)
         .custom("Passwords must be the same.") {
             it == field(Signup::password).currentValue
         }
+
     field(Signup::accept) {
         isChecked("Your must accept the terms of agreement.")
     }
@@ -120,7 +123,13 @@ fun SignupApp(signupForm: Form<Signup>) {
                     Text("Reset", color = Color.White)
                 }
             } else {
-                Button(onClick = { signedUp = form.validate() }) {
+                Button(onClick = {
+                    signedUp = form.validate()
+
+
+                    form.pop()
+
+                }) {
                     Text("Sign up", color = Color.White)
                 }
             }

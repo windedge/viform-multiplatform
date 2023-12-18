@@ -1,29 +1,27 @@
-English | [中文](README-CN.md)
-
 # ViForm
 
-ViForm is a Kotlin library for form validation, mainly aimed at Compose Multiplatform projects. It has the following features:
-* Supports Kotlin Multiplatform
-* Type-safe validation rules, supporting both DSL style and chained style validation declaration
-* Form state management
-* Integrated support for Compose Multiplatform
+ViForm是一个用于表单验证的Kotlin库，主要目标是用在Compose Multiplatform项目，它具有下面几个特点：
+* 支持Kotlin多平台
+* 类型安全的验证规则，同时支持DSL风格和链式风格的验证规则写法
+* 表单状态管理
+* Compose Multiplatform的集成支持
 
 
-## Prerequisites
+## 前提条件
 - Kotlin Coroutine
 - KopyBuilder
-- Compose Multiplatform (optional)
+- Compose Multiplatform(可选)
 
-## Installation
+## 安装
 
-Apply the KopyBuilder Gradle plugin
+应用KopyBuilder的Gradle插件
 ```kotlin
 plugins {
     id("io.github.windedge.kopybuilder") version "0.1.5"
 }
 ```
 
-Add dependency to Multiplatform project
+在Multiplatform项目添加信赖
 ```Kotlin
 kotlin {
     sourceSets {
@@ -31,7 +29,7 @@ kotlin {
             dependencies {
                 implementation("io.github.windedge.viform:viform-core:$VERSION")
 
-                // Optional
+                // 可选
                 implementation("io.github.windedge.viform:viform-compose:$VERSION")
             }
         }
@@ -39,19 +37,19 @@ kotlin {
 }
 ```
 
-Add dependency to JVM project
+在JVM项目添加信赖
 ```Kotlin
 dependencies {
     implementation("io.github.windedge.viform:viform-core:$VERSION")
 
-    // Optional
+    // 可选
     implementation("io.github.windedge.viform:viform-compose:$VERSION")
 }
 ```
 
-## Quick Start
+## 快速开始
 
-Define validation rules:
+定义验证规则：
 
 ```kotlin
 import io.github.windedge.copybuilder.KopyBuilder
@@ -77,10 +75,10 @@ val schema = FormSchema.create<Signup> {
        isEmail()
    }
 
-   // Chain style
+   // 链式风格
    field(Signup::password).required().lengthBetween(8, 20)
 
-   // Custom rules
+   // 自定义规则
    field(Signup::confirmPassword).required().lengthBetween(8, 20)
        .custom("Passwords must be the same.") {
            it == field(Signup::password).currentValue
@@ -88,7 +86,7 @@ val schema = FormSchema.create<Signup> {
 }
 ```
 
-Use in Jetpack Compose project:
+在Jetpack Compose项目中使用：
 
 ```kotlin
 import io.github.windedge.viform.compose.use
@@ -97,16 +95,16 @@ import io.github.windedge.viform.compose.use
 fun SignupApp() {
     val form = schema.buildForm(Signup())
     Column {
-        form.use {
+        form.use() {
             field(it::name) {
                 TextInput("User Name: ", currentValue, hasError, errorMessage, onValueChange = {
-                    setValue(it, validate = true)  // validate synchronously
+                    setValue(it, validate = true)  // 实时验证
                 })
             }
 
             field(it::email) {
-                watchLazily { validate() }  // validate asynchronously
-                TextInput("Email:", currentValue ?: "", hasError, errorMessage, onValueChange=::setValue)
+                watchLazily { validate() }  // 延迟验证
+                TextInput("Email:", currentValue ?: "", hasError, errorMessage), onValueChange=::setValue)
             }
 
             field(it::password) {
@@ -119,10 +117,10 @@ fun SignupApp() {
                 TextInput("Confirm Password:", currentValue, hasError, errorMessage, onValueChange=::setValue)
             }
 
-            // validate on submit
+            // 提交时验证
             Button(onClick = {
                 if(form.validate()) {
-                    val signup = form.pop()   // get form data
+                    val data = form.pop()   // 获取数据
                     // ...
                 }
             }) { Text("Sign up") }
@@ -132,25 +130,25 @@ fun SignupApp() {
 ```
 
 
-[//]: # (## Build Status)
+[//]: # (## 构建状态)
 
 [//]: # ()
-[//]: # (Badges for CI/CD build status can be placed here.)
+[//]: # (这里可以放置CI/CD构建状态的徽章。)
 
 [//]: # ()
-[//]: # (## Contributing)
+[//]: # (## 贡献)
 
 [//]: # ()
-[//]: # (If you want to contribute code, please read `CONTRIBUTING.md`.)
+[//]: # (如果你想贡献代码，请阅读`CONTRIBUTING.md`。)
 
-## License
+## 许可证
 [MIT License](./LICENSE)
 
-## Author
+## 作者
 
 [Ken Xu](https://github.com/windedge)
 
-[//]: # (## Acknowledgments)
+[//]: # (## 致谢)
 
 [//]: # ()
-[//]: # (Thanks to all contributors for their efforts.)
+[//]: # (感谢所有贡献者的努力。)
