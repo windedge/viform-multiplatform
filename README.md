@@ -3,10 +3,10 @@ English | [中文](README-CN.md)
 # ViForm
 
 ViForm is a Kotlin library for form validation, mainly aimed at Compose Multiplatform projects. It has the following features:
-* Supports Kotlin Multiplatform
+* Supports Kotlin Multiplatform(android, jvm, js/wasmjs, native)
 * Type-safe validation rules, supporting both DSL style and chained style validation declaration
 * Form state management
-* Integrated support for Compose Multiplatform
+* Integrated support for Compose Multiplatform(android, desktop, wasmjs)
 
 
 ## Prerequisites

@@ -1,10 +1,10 @@
 # ViForm
 
 ViForm是一个用于表单验证的Kotlin库，主要目标是用在Compose Multiplatform项目，它具有下面几个特点：
-* 支持Kotlin多平台
+* 支持Kotlin多平台(android, jvm, js, wasmjs, native)
 * 类型安全的验证规则，同时支持DSL风格和链式风格的验证规则写法
 * 表单状态管理
-* Compose Multiplatform的集成支持
+* Compose Multiplatform的集成支持(android, desktop, wasmjs)
 
 
 ## 前提条件
