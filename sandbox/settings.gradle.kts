@@ -35,4 +35,6 @@ includeBuild("../") {
 }
 includeBuild("../build-conventions")
 
-include(":todoapp", ":signupapp")
+include(
+  ":signupapp"
+)

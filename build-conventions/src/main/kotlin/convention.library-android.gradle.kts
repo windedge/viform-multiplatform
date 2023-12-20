@@ -5,7 +5,10 @@ plugins {
 
 android {
   namespace = "$group.${name.replace(Regex("[_-]"), ".")}"
-  compileSdk = 31
+  compileSdk = 33
+  sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+  sourceSets["main"].res.srcDirs("src/androidMain/res")
+  sourceSets["main"].resources.srcDirs("src/commonMain/resources")
   defaultConfig {
     minSdk = 1
     aarMetadata {

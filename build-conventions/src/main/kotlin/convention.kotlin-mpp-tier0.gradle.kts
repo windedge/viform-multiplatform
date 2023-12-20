@@ -7,7 +7,7 @@ plugins {
 
 plugins.withId("com.android.library") {
   configure<KotlinMultiplatformExtension> {
-    android()
+    androidTarget()
   }
 }
 
