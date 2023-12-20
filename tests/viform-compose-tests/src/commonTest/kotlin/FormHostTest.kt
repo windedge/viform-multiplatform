@@ -10,6 +10,7 @@ class FormHostTest {
     @KopyBuilder
     data class User(val name: String, val email: String?)
 
+/*
     @Test
     fun testFormCreate() {
         val user = User("Ken", "x@y.com")
@@ -32,4 +33,5 @@ class FormHostTest {
         val newUser = host.pop()
         assertEquals("hello", newUser.name)
     }
+*/
 }

@@ -13,7 +13,7 @@ on:
       skipMavenCentral:
         description: Should we skip publishing artefacts to Maven Central
         required: false
-        default: "y"
+        default: "n"
 #      skipGitHub:
 #        description: Should we skip publishing artefacts to GitHub Packages
 #        required: false
@@ -99,7 +99,7 @@ jobs:
         run: ./gradlew publishToMavenLocal --scan
 
       - name: Gradle Check
-        run: ./gradlew check --scan
+        run: ./gradlew kotlinUpgradeYarnLock check --scan
 
       - uses: actions/upload-artifact@v3
         if: ${{ always() }}

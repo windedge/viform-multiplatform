@@ -17,10 +17,10 @@ class FormTest {
     @Test
     fun testFormCreate() {
         val form: Form<User> = Form(person)
-        val formField = form.registerField(User::name)
+        val formField = form.getOrRegisterField(User::name)
         form.submit(person.copy(name = "world"))
 
-        assertEquals("world", formField.value)
+        assertEquals("world", formField.currentValue)
     }
 
 }
