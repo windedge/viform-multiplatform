@@ -7,14 +7,16 @@ import kotlinx.coroutines.flow.*
 import kotlin.reflect.*
 
 @Composable
-public inline fun <T : Any> FormHost<T>.useForm(content: @Composable FormScope<T>.(T) -> Unit) {
+public fun <T : Any> FormHost<T>.useForm(content: @Composable FormScope<T>.(T) -> Unit) {
     val state = this.stateFlow.collectAsState()
     FormScope(form).content(state.value)
 }
 
 @Composable
-public inline fun <T : Any> Form<T>.use(content: @Composable FormScope<T>.(T) -> Unit) {
-    DefaultFormHost(this).useForm(content)
+public fun <T : Any> Form<T>.use(content: @Composable FormScope<T>.(T) -> Unit) {
+    val formHost = DefaultFormHost(this)
+    val state = formHost.stateFlow.collectAsState()
+    FormScope(this).content(state.value)
 }
 
 public class FormScope<T : Any>(public val form: Form<T>) {
@@ -143,7 +145,9 @@ internal class WrappedFormField<V, R>(
 
     fun setWrappedSate(value: R, validate: Boolean = false) {
         _wrappedState.value = value
-        origin.setValue(unwrap(value), false)
+        val unwrapValue = unwrap(value)
+        println("setWrappedSate: $value, validate: $validate, unwrap value: $unwrapValue")
+        origin.setValue(unwrapValue, false)
 
         if (validate) validate()
     }
