@@ -16,8 +16,8 @@ publishing {
 
         licenses {
           license {
-            name by "The Apache License, Version 2.0"
-            url by "https://www.apache.org/licenses/LICENSE-2.0.txt"
+            name by "MIT License"
+            url by "https://raw.githubusercontent.com/windedge/viform-multiplatform/main/LICENSE"
           }
         }
 
