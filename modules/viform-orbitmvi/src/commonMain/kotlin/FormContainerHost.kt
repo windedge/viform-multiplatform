@@ -22,6 +22,19 @@ public abstract class FormContainerHost<STATE : Any, SIDE_EFFECT : Any>
         return form.submit(formData, validate)
     }
 
+    override fun validate(): Boolean = form.validate()
+
+    override fun pop(): STATE {
+        val state = form.pop()
+        intent { reduce { state } }
+        return state
+    }
+
+    override fun reset() {
+        form.reset()
+        intent { reduce { form.pop() } }
+    }
+
     @OptIn(OrbitInternal::class)
     @OrbitDsl
     public suspend fun <SE : Any> SimpleSyntax<STATE, SE>.reduce(
@@ -34,6 +47,4 @@ public abstract class FormContainerHost<STATE : Any, SIDE_EFFECT : Any>
             if (success) newState else oldState
         }
     }
-
-    override fun validate(): Boolean = form.validate()
 }
