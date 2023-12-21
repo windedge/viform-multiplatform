@@ -80,7 +80,7 @@ val schema = FormSchema.create<Signup> {
    // Chain style
    field(Signup::password).required().lengthBetween(8, 20)
 
-   // Custom rules
+   // Custom rule
    field(Signup::confirmPassword).required().lengthBetween(8, 20)
        .custom("Passwords must be the same.") {
            it == field(Signup::password).currentValue
