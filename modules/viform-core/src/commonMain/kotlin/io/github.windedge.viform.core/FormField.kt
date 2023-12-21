@@ -44,7 +44,6 @@ public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V)
     override fun getValidators(): List<FieldValidator<V>> = validators.toList()
 
     override fun setValue(value: V, validate: Boolean) {
-        println("setValue: $value, validate: $validate")
         _valueFlow.value = value
         _resultFlow.value = ValidateResult.None
 
