@@ -16,6 +16,8 @@ public interface FormField<V : Any?> : ValidatorContainer<V> {
 
     public fun setResult(result: ValidateResult)
 
+    public fun showError(message: String)
+
     public fun validate(): Boolean
 }
 
@@ -52,6 +54,10 @@ public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V)
 
     public override fun setResult(result: ValidateResult) {
         _resultFlow.value = result
+    }
+
+    override fun showError(message: String) {
+        setResult(ValidateResult.Failure(message))
     }
 
     override fun validate(): Boolean =

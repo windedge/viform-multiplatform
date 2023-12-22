@@ -36,9 +36,9 @@ public class FormScope<T : Any>(public val form: Form<T>) {
     }
 
     @Composable
-    public inline fun <V, reified R> FormField<V>.wrapAs(
-        noinline wrap: (V) -> R,
-        noinline unwrap: (R) -> V,
+    public inline fun <reified V, reified R> FormField<V>.wrapAs(
+        noinline wrap: FormField<V>.(V) -> R,
+        noinline unwrap: FormField<V>.(R) -> V,
         noinline constraints: ValidatorContainer<R>.() -> Unit = {},
         noinline content: @Composable FieldScope<T, R>.() -> Unit,
     ) {
@@ -49,8 +49,8 @@ public class FormScope<T : Any>(public val form: Form<T>) {
     @Composable
     public fun <V, R> FormField<V>.wrapAsType(
         wrappedType: KType,
-        wrap: (V) -> R,
-        unwrap: (R) -> V,
+        wrap: FormField<V>.(V) -> R,
+        unwrap: FormField<V>.(R) -> V,
         constraints: ValidatorContainer<R>.() -> Unit = {},
         content: @Composable() (FieldScope<T, R>.() -> Unit),
     ) {
@@ -118,8 +118,8 @@ public class FieldScope<T : Any, V : Any?>(
 internal class WrappedFormField<V, R>(
     val origin: FormField<V>,
     val wrappedType: KType,
-    val wrap: (V) -> R,
-    val unwrap: (R) -> V
+    val wrap: FormField<V>.(V) -> R,
+    val unwrap: FormField<V>.(R) -> V
 ) : FormField<V> by origin {
 
     private val wrappedValidators = mutableListOf<FieldValidator<R>>()
@@ -154,10 +154,6 @@ internal class WrappedFormField<V, R>(
     fun applyConstraints(constraints: ValidatorContainer<R>.() -> Unit) {
         val container = SimpleValidatorContainer<R>().apply(constraints)
         wrappedValidators.addAll(container.getValidators())
-    }
-
-    fun showError(errorMessage: String) {
-        setResult(ValidateResult.Failure(errorMessage))
     }
 
 }
