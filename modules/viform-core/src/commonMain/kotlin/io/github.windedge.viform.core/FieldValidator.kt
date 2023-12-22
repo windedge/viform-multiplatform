@@ -270,44 +270,44 @@ public class LengthBetween(
     }
 }
 
-public class GreaterThan<V : Comparable<V>>(
+public class GreaterThan<V : Number>(
     private val value: V, override val errorMessage: String? = null
 ) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
-        if (input > value) {
+        if (input.toDouble() > value.toDouble()) {
             return ValidateResult.Success
         }
         return ValidateResult.Failure(errorMessage ?: "Should be greater than $value")
     }
 }
 
-public class GreaterThanOrEquals<V : Comparable<V>>(
+public class GreaterThanOrEquals<V : Number>(
     private val value: V, override val errorMessage: String? = null
 ) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
-        if (input >= value) {
+        if (input.toDouble() >= value.toDouble()) {
             return ValidateResult.Success
         }
         return ValidateResult.Failure(errorMessage ?: "Should be greater than or equals to $value")
     }
 }
 
-public class LesserThan<V : Comparable<V>>(
+public class LesserThan<V : Number>(
     private val value: V, override val errorMessage: String? = null
 ) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
-        if (input < value) {
+        if (input.toDouble() < value.toDouble()) {
             return ValidateResult.Success
         }
         return ValidateResult.Failure(errorMessage ?: "Should be lesser than $value")
     }
 }
 
-public class LesserThanOrEquals<V : Comparable<V>>(
+public class LesserThanOrEquals<V : Number>(
     private val value: V, override val errorMessage: String? = null
 ) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
-        if (input <= value) {
+        if (input.toDouble() <= value.toDouble()) {
             return ValidateResult.Success
         }
         return ValidateResult.Failure(errorMessage ?: "Should be lesser than or equals to $value")

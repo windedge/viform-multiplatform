@@ -115,26 +115,18 @@ public fun ValidatorContainer<String>.lengthBetween(
     minLength: Int, maxLength: Int, errorMessage: String? = null
 ): ValidatorContainer<String> = addValidator { LengthBetween(minLength, maxLength, errorMessage) }
 
-public fun <V : Comparable<V>> ValidatorContainer<V>.greaterThan(
-    value: V,
-    errorMessage: String? = null
-): ValidatorContainer<V> =
-    addValidator { GreaterThan(value, errorMessage) }
+public fun <V : Number> ValidatorContainer<V>.greaterThan(value: V, errMsg: String? = null): ValidatorContainer<V> =
+    addValidator { GreaterThan(value, errMsg) }
 
-public fun <V : Comparable<V>> ValidatorContainer<V>.greaterThanOrEquals(
-    value: V,
-    errorMessage: String? = null
+public fun <V : Number> ValidatorContainer<V>.greaterThanOrEquals(
+    value: V, errMsg: String? = null
 ): ValidatorContainer<V> =
-    addValidator { GreaterThanOrEquals(value, errorMessage) }
+    addValidator { GreaterThanOrEquals(value, errMsg) }
 
-public fun <V : Comparable<V>> ValidatorContainer<V>.lesserThan(
-    value: V,
-    errorMessage: String? = null
-): ValidatorContainer<V> =
-    addValidator { LesserThan(value, errorMessage) }
+public fun <V : Number> ValidatorContainer<V>.lesserThan(value: V, errMsg: String? = null): ValidatorContainer<V> =
+    addValidator { LesserThan(value, errMsg) }
 
-public fun <V : Comparable<V>> ValidatorContainer<V>.lesserThanOrEquals(
-    value: V,
-    errorMessage: String? = null
+public fun <V : Number> ValidatorContainer<V>.lesserThanOrEquals(
+    value: V, errMsg: String? = null
 ): ValidatorContainer<V> =
-    addValidator { LesserThanOrEquals(value, errorMessage) }
+    addValidator { LesserThanOrEquals(value, errMsg) }
