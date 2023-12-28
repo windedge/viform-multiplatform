@@ -9,17 +9,17 @@ import kotlin.reflect.*
 @Composable
 public fun <T : Any> FormHost<T>.useForm(content: @Composable FormScope<T>.(T) -> Unit) {
     val state = this.stateFlow.collectAsState()
-    FormScope(form).content(state.value)
+    FormScope(this).content(state.value)
 }
 
 @Composable
 public fun <T : Any> Form<T>.use(content: @Composable FormScope<T>.(T) -> Unit) {
     val formHost = DefaultFormHost(this)
-    val state = formHost.stateFlow.collectAsState()
-    FormScope(this).content(state.value)
+    formHost.useForm(content)
 }
 
-public class FormScope<T : Any>(public val form: Form<T>) {
+public class FormScope<T : Any>(private val formHost: FormHost<T>) {
+    private val form: Form<T> = formHost.form
 
     @Composable
     public fun <V : Any?> field(property: KProperty0<V>): FormField<V> {
@@ -28,8 +28,7 @@ public class FormScope<T : Any>(public val form: Form<T>) {
 
     @Composable
     public inline fun <reified V> field(
-        property: KProperty0<V>,
-        noinline content: @Composable FieldScope<T, V>.() -> Unit
+        property: KProperty0<V>, noinline content: @Composable FieldScope<T, V>.() -> Unit
     ) {
         val wrappedType = typeOf<V>()
         field(property).wrapAsType(wrappedType, { it }, { it }, content = content)
@@ -58,20 +57,30 @@ public class FormScope<T : Any>(public val form: Form<T>) {
         val wrappedFormField = this as? WrappedFormField<V, R> ?: remember(this.name) {
             WrappedFormField(this, wrappedType, wrap, unwrap).apply {
                 form.replaceField(this)
+                applyConstraints(constraints)
             }
         }
         if (wrappedFormField.wrappedType != wrappedType) {
             error("Can't wrap as another type!")
         }
 
-        remember { wrappedFormField.applyConstraints(constraints) }
         DisposableEffect(name) {
             onDispose { form.replaceField(wrappedFormField.origin) }
         }
 
         val resultState = this.resultFlow.collectAsState(ValidateResult.None)
         val fieldScope: FieldScope<T, R> = with(wrappedFormField) {
-            FieldScope(wrappedState.value, resultState.value, ::setWrappedSate, ::validate, onShowError = ::showError)
+            FieldScope(
+                wrappedState.value,
+                resultState.value,
+                ::setWrappedSate,
+                ::validate,
+                ::showError,
+                onValueSubmitted = { validate ->
+                    formHost.pop()
+                    if (validate) formHost.validate()
+                }
+            )
         }
         fieldScope.content()
     }
@@ -79,21 +88,25 @@ public class FormScope<T : Any>(public val form: Form<T>) {
 }
 
 public class FieldScope<T : Any, V : Any?>(
-    public val currentValue: V,
-    private val result: ValidateResult,
+    value: V,
+    result: ValidateResult,
     private val onValueChanged: (V, Boolean) -> Unit,
     private val onValidate: () -> Boolean,
     private val onShowError: (String) -> Unit,
+    private val onValueSubmitted: (Boolean) -> Unit,
 ) {
-    public val hasError: Boolean get() = result.isError
+    public val currentValue: V = value
+    public val hasError: Boolean = result.isError
     public val errorMessage: String? = result.errorMessage
+
 
     public fun setValue(value: V, validate: Boolean = false) {
         onValueChanged(value, validate)
     }
 
-    public fun setValue(value: V) {
-        onValueChanged(value, false)
+    public fun submitValue(value: V, validate: Boolean) {
+        setValue(value, validate)
+        onValueSubmitted(validate)
     }
 
     public fun validate(): Boolean {

@@ -21,12 +21,11 @@ public interface FormField<V : Any?> : ValidatorContainer<V> {
     public fun validate(): Boolean
 }
 
-@Suppress("FunctionName")
-public fun <V> FormField(name: String, initialValue: V): FormFieldImpl<V> {
+public fun <V> FormField(name: String, initialValue: V): FormField<V> {
     return FormFieldImpl(name, initialValue)
 }
 
-public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V) : FormField<V> {
+internal class FormFieldImpl<V : Any?>(override val name: String, initialValue: V) : FormField<V> {
     private val _valueFlow: MutableStateFlow<V> = MutableStateFlow(initialValue)
     override val valueFlow: StateFlow<V> get() = _valueFlow.asStateFlow()
 
@@ -52,7 +51,7 @@ public class FormFieldImpl<V : Any?>(override val name: String, initialValue: V)
         if (validate) validate()
     }
 
-    public override fun setResult(result: ValidateResult) {
+    override fun setResult(result: ValidateResult) {
         _resultFlow.value = result
     }
 
