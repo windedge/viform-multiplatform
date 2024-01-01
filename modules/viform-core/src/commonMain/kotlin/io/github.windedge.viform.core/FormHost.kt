@@ -47,7 +47,7 @@ public class DefaultFormHost<T : Any>(override val form: Form<T>) : FormHost<T> 
     }
 
     override fun pop(): T {
-        val newState = form.pop()
+        val newState = form.pop(currentState)
         _stateFlow.value = newState
         return newState
     }

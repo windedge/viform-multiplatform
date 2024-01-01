@@ -20,7 +20,7 @@ public interface Form<T : Any> {
 
     public fun submit(formData: T, validate: Boolean = true): Boolean
 
-    public fun pop(): T
+    public fun pop(shadowedState: T? = null): T
 
     public fun reset()
 }
@@ -98,10 +98,9 @@ internal class FormImpl<T : Any>(private val initialState: T) : Form<T> {
         return true
     }
 
-    override fun pop(): T {
-        val initialState = this.initialState.also {
-            if (fieldsMap.isEmpty()) return it
-        }
+    override fun pop(shadowedState: T?): T {
+        val initialState = shadowedState ?: this.initialState
+        if (fieldsMap.isEmpty()) return initialState
 
         @Suppress("UNCHECKED_CAST")
         initialState as? CopyBuilderHost<T>

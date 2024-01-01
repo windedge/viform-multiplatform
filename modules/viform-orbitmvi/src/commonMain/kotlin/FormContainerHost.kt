@@ -25,7 +25,7 @@ public abstract class FormContainerHost<STATE : Any, SIDE_EFFECT : Any>
     override fun validate(): Boolean = form.validate()
 
     override fun pop(): STATE {
-        val state = form.pop()
+        val state = form.pop(currentState)
         intent { reduce { state } }
         return state
     }
