@@ -76,10 +76,7 @@ public class FormScope<T : Any>(private val formHost: FormHost<T>) {
                 ::setWrappedSate,
                 ::validate,
                 ::showError,
-                onValueSubmitted = { validate ->
-                    formHost.pop()
-                    if (validate) formHost.validate()
-                }
+                formHost::pop
             )
         }
         fieldScope.content()
@@ -93,7 +90,7 @@ public class FieldScope<T : Any, V : Any?>(
     private val onValueChanged: (V, Boolean) -> Unit,
     private val onValidate: () -> Boolean,
     private val onShowError: (String) -> Unit,
-    private val onValueSubmitted: (Boolean) -> Unit,
+    private val onSubmitted: () -> Unit,
 ) {
     public val currentValue: V = value
     public val hasError: Boolean = result.isError
@@ -104,9 +101,8 @@ public class FieldScope<T : Any, V : Any?>(
         onValueChanged(value, validate)
     }
 
-    public fun submitValue(value: V, validate: Boolean) {
-        setValue(value, validate)
-        onValueSubmitted(validate)
+    public fun submit() {
+        onSubmitted()
     }
 
     public fun validate(): Boolean {
