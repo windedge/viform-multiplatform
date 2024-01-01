@@ -12,9 +12,11 @@ tasks {
 }
 
 publishing {
-  publications {
-    withType<MavenPublication> {
-      artifact(tasks["javadocJar"])
+  if (!project.version.toString().contains("SNAPSHOT")) {
+    publications {
+      withType<MavenPublication> {
+        artifact(tasks["javadocJar"])
+      }
     }
   }
 }
