@@ -271,7 +271,7 @@ public class LengthBetween(
 }
 
 public class GreaterThan<V : Number>(
-    private val value: V, override val errorMessage: String? = null
+    private val value: Number, override val errorMessage: String? = null
 ) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
         if (input.toDouble() > value.toDouble()) {
@@ -282,7 +282,7 @@ public class GreaterThan<V : Number>(
 }
 
 public class GreaterThanOrEquals<V : Number>(
-    private val value: V, override val errorMessage: String? = null
+    private val value: Number, override val errorMessage: String? = null
 ) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
         if (input.toDouble() >= value.toDouble()) {
@@ -293,7 +293,7 @@ public class GreaterThanOrEquals<V : Number>(
 }
 
 public class LesserThan<V : Number>(
-    private val value: V, override val errorMessage: String? = null
+    private val value: Number, override val errorMessage: String? = null
 ) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
         if (input.toDouble() < value.toDouble()) {
@@ -304,7 +304,7 @@ public class LesserThan<V : Number>(
 }
 
 public class LesserThanOrEquals<V : Number>(
-    private val value: V, override val errorMessage: String? = null
+    private val value: Number, override val errorMessage: String? = null
 ) : FieldValidator<V> {
     override fun validate(input: V): ValidateResult {
         if (input.toDouble() <= value.toDouble()) {
