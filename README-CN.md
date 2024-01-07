@@ -14,14 +14,14 @@ ViForm是一个用于表单验证的Kotlin库，主要目标是用在Compose Mul
 
 ## 安装
 
-应用KopyBuilder的Gradle插件
+添加KopyBuilder的Gradle插件
 ```kotlin
 plugins {
     id("io.github.windedge.kopybuilder") version "0.1.5"
 }
 ```
 
-在Multiplatform项目添加信赖
+在Multiplatform项目添加依赖
 ```Kotlin
 kotlin {
     sourceSets {
@@ -37,7 +37,7 @@ kotlin {
 }
 ```
 
-在JVM项目添加信赖
+在JVM项目添加依赖
 ```Kotlin
 dependencies {
     implementation("io.github.windedge.viform:viform-core:$VERSION")
