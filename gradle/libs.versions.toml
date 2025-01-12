@@ -16,8 +16,8 @@ kotlinx-serilization = "1.7.3"
 orbitmvi = "6.1.0"
 kotlinpoet = "1.12.0"
 ksp = "2.1.0-1.0.29"
-kopybuilder = "0.2.0-SNAPSHOT"
-viform = "0.1.0-SNAPSHOT"
+kopybuilder = "0.2.0"
+viform = "0.0.0"
 
 
 [libraries]
