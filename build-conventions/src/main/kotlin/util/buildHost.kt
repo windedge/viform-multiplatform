@@ -18,10 +18,10 @@ val KonanTarget.buildHost: KonanTarget
     KonanTarget.ANDROID_X86,
     KonanTarget.LINUX_ARM32_HFP,
     KonanTarget.LINUX_ARM64,
-    KonanTarget.LINUX_MIPS32,
-    KonanTarget.LINUX_MIPSEL32,
-    KonanTarget.WASM32,
-    is KonanTarget.ZEPHYR,
+//    KonanTarget.LINUX_MIPS32,
+//    KonanTarget.LINUX_MIPSEL32,
+//    KonanTarget.WASM32,
+//    is KonanTarget.ZEPHYR,
     KonanTarget.LINUX_X64 -> KonanTarget.LINUX_X64
 
     // MACOS_ARM64 only targets
@@ -33,7 +33,7 @@ val KonanTarget.buildHost: KonanTarget
 
     // MACOS_X64 only targets
     KonanTarget.WATCHOS_X64,
-    KonanTarget.WATCHOS_X86,
+//    KonanTarget.WATCHOS_X86,
     KonanTarget.TVOS_X64,
     KonanTarget.IOS_X64,
     KonanTarget.MACOS_X64 -> KonanTarget.MACOS_X64
@@ -42,13 +42,13 @@ val KonanTarget.buildHost: KonanTarget
     KonanTarget.TVOS_ARM64,
     KonanTarget.WATCHOS_ARM32,
     KonanTarget.WATCHOS_ARM64,
-    KonanTarget.IOS_ARM32,
+//    KonanTarget.IOS_ARM32,
     KonanTarget.IOS_ARM64,
     -> KonanTarget.MACOS_X64
 
     // MINGW_X64 targets
-    KonanTarget.MINGW_X64,
-    KonanTarget.MINGW_X86 -> KonanTarget.MINGW_X64
+//      KonanTarget.MINGW_X86,
+      KonanTarget.MINGW_X64-> KonanTarget.MINGW_X64
   }
 
 val Project.mainHost: KonanTarget

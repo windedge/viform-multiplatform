@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
   alias(libs.plugins.kotlin.kmp)
+  alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.android.application)
   alias(libs.plugins.compose.wasm)
   alias(libs.plugins.kopybuilder)

@@ -21,6 +21,8 @@ public fun <T : Any> Form<T>.use(content: @Composable FormScope<T>.(T) -> Unit) 
 public class FormScope<T : Any>(private val formHost: FormHost<T>) {
     private val form: Form<T> = formHost.form
 
+    public val stateFlow: StateFlow<T> = formHost.stateFlow
+
     @Composable
     public fun <V : Any?> field(property: KProperty0<V>): FormField<V> {
         return form.getOrRegisterField(property)
@@ -97,8 +99,11 @@ public class FieldScope<T : Any, V : Any?>(
     public val errorMessage: String? = result.errorMessage
 
 
-    public fun setValue(value: V, validate: Boolean = false) {
+    public fun setValue(value: V, validate: Boolean = false, submit: Boolean = false) {
         onValueChanged(value, validate)
+        if (submit) {
+            onSubmitted()
+        }
     }
 
     public fun submit() {

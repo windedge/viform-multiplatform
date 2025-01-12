@@ -5,6 +5,7 @@ plugins {
   id("convention.library-android")
   id("convention.library-mpp")
   id("convention.publishing-mpp")
+  alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.compose.wasm)
 }
 
