@@ -61,7 +61,7 @@ kotest-assertions = [
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
-compose-wasm = { id = "org.jetbrains.compose", version.ref = "compose-wasm" }
+#compose-wasm = { id = "org.jetbrains.compose", version.ref = "compose-wasm" }
 kotlin-kmp = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 nexus-publish = "io.github.gradle-nexus.publish-plugin:2.0.0"

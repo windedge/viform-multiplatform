@@ -9,7 +9,7 @@ plugins {
   alias(libs.plugins.kotlin.kmp)
   alias(libs.plugins.kotlin.compose)
   alias(libs.plugins.android.application)
-  alias(libs.plugins.compose.wasm)
+  alias(libs.plugins.compose)
   alias(libs.plugins.kopybuilder)
 }
 
