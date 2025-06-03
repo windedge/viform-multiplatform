@@ -1,31 +1,21 @@
-# Sharing dependency versions between projects
-# https://docs.gradle.org/current/userguide/platforms.html
 [versions]
-kotlin = "2.1.0"
-agp = "7.4.2"
-detekt = "1.23.7"
-dokka = "2.0.0"
-java = "11"
-junit-jupiter = "5.11.3"
-kotest = "5.9.1"
-compose = "1.7.3"
-compose-wasm = "1.7.3"
+viform = "0.0.0"
+
+kotlin = "2.1.21"
+agp = "8.2.0"
+java = "17"
+compose = "1.8.0"
 androidx-activity-compose = "1.9.3"
 kotlinx-coroutines = "1.9.0"
 kotlinx-serilization = "1.7.3"
 orbitmvi = "6.1.0"
 kotlinpoet = "1.12.0"
 ksp = "2.1.0-1.0.29"
-kopybuilder = "0.2.0"
-viform = "0.0.0"
+kopybuilder = "0.2.4-SNAPSHOT"
+maven-publish = "0.25.2"
 
 
 [libraries]
-detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
-kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
-kotest-assertions-json = { module = "io.kotest:kotest-assertions-json", version.ref = "kotest" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-serilization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serilization" }
@@ -34,38 +24,17 @@ ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = 
 kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 kopybuilder-runtime = { module = "io.github.windedge.copybuilder:copybuilder-runtime", version.ref = "kopybuilder" }
 
-plugin-android = {module = "com.android.tools.build:gradle", version.ref = "agp"}
-plugin-container-tasks = "dev.petuska:container-tasks-gradle-plugin:0.0.4"
-plugin-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
-plugin-git-hooks = "com.github.jakemarsden:git-hooks-gradle-plugin:0.0.2"
-plugin-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-plugin-kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
-plugin-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
-plugin-nebula-node = "com.netflix.nebula:nebula-node-plugin:3.0.0"
-plugin-versions = "com.github.ben-manes:gradle-versions-plugin:0.46.0"
-plugin-versions-update = "nl.littlerobots.vcu:plugin:0.8.0"
-
 viform-core = { module = "io.github.windedge.viform:viform-core", version.ref = "viform" }
 viform-compose = { module = "io.github.windedge.viform:viform-compose", version.ref = "viform" }
-viform-orbitmvi = { module = "io.github.windedge.viform:viform-orbitmvi", version.ref = "viform" }
-viform-test-utils = { module = "io.github.windedge.viform:test-utils", version.ref = "viform" }
 
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 
-[bundles]
-kotest-assertions = [
-    "kotest-assertions-core",
-    "kotest-assertions-json",
-]
 
 [plugins]
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
-#compose-wasm = { id = "org.jetbrains.compose", version.ref = "compose-wasm" }
 kotlin-kmp = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-nexus-publish = "io.github.gradle-nexus.publish-plugin:2.0.0"
-plugin-publish = "com.gradle.plugin-publish:1.2.0"
-task-tree = "com.dorongold.task-tree:2.1.1"
-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kopybuilder = { id = "io.github.windedge.kopybuilder", version.ref = "kopybuilder" }

@@ -1,35 +1,65 @@
+import com.android.build.api.dsl.LibraryExtension
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin
+
 plugins {
-  alias(libs.plugins.nexus.publish)
-
-  id("convention.versions")
-//  id("convention.git-hooks")
-
-  id("convention.kotlin-mpp-tier0")
-  id("convention.kotlin-mpp-js")
-  id("convention.kotlin-mpp-wasm")
-  id("convention.library-android")
-  id("convention.library-mpp")
-  id("convention.publishing-mpp")
+    alias(libs.plugins.kotlin.kmp) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.maven.publish) apply false
+    alias(libs.plugins.compose) apply false
+    alias(libs.plugins.kotlin.compose) apply false
 }
 
-nexusPublishing.repositories {
-  sonatype {
-    nexusUrl by uri("https://s01.oss.sonatype.org/service/local/")
-    snapshotRepositoryUrl by uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-  }
+
+repositories {
+    mavenCentral()
 }
 
-// gradleEnterprise {
-//   buildScan {
-//     termsOfServiceUrl = "https://gradle.com/terms-of-service"
-//     termsOfServiceAgree = "yes"
-//   }
-// }
-
-kotlin {
-  sourceSets {
-    commonMain {
-//      dependencies { subprojects.filter { it.path.startsWith(":modules:") }.forEach { api(it) } }
+subprojects {
+    repositories {
+        mavenCentral()
+        google()
+        mavenLocal()
     }
-  }
+
+    plugins.withType<KotlinBasePlugin> {
+        extensions.configure<KotlinMultiplatformExtension> {
+            jvmToolchain(17)
+
+            jvm()
+
+            plugins.withId("com.android.library") {
+                androidTarget {
+                    publishLibraryVariants("release")
+                }
+            }
+
+            iosArm64()
+            iosX64()
+            iosSimulatorArm64()
+        }
+    }
+
+    afterEvaluate {
+        plugins.withId("java") {
+            extensions.configure<JavaPluginExtension> {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+        }
+
+        extensions.findByType<LibraryExtension>()?.apply {
+            compileSdk = 35
+            sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+            defaultConfig {
+                minSdk = 21
+            }
+            compileOptions {
+                this.sourceCompatibility = JavaVersion.VERSION_17
+                this.targetCompatibility = JavaVersion.VERSION_17
+            }
+            namespace = "io.github.windedge.viform"
+        }
+    }
 }

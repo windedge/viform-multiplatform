@@ -1,44 +1,38 @@
-@file:Suppress("UnstableApiUsage")
-
-import org.jetbrains.compose.ComposeBuildConfig.composeVersion
-import org.jetbrains.compose.ExperimentalComposeLibrary
-
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 
 plugins {
-  alias(libs.plugins.kotlin.kmp)
-  alias(libs.plugins.kotlin.compose)
-  alias(libs.plugins.android.application)
-  alias(libs.plugins.compose)
-  alias(libs.plugins.kopybuilder)
+    alias(libs.plugins.kotlin.kmp)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kopybuilder)
 }
 
 kotlin {
-  jvmToolchain(11)
+  jvmToolchain(17)
 
   androidTarget("android") {
     compilations.all {
       kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
       }
     }
   }
 
   jvm("desktop")
 
-  @OptIn(ExperimentalWasmDsl::class)
   wasmJs {
-    moduleName = "signupapp"
-    browser {
-      commonWebpackConfig {
-        outputFileName = "signupapp.js"
-      }
-    }
+    browser()
     binaries.executable()
-    applyBinaryen()
   }
 
   sourceSets {
+    all {
+      languageSettings {
+        optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
+      }
+    }
+    
     val commonMain by getting {
       dependencies {
         implementation(libs.kotlinx.coroutines.core)
@@ -47,7 +41,7 @@ kotlin {
         implementation(compose.foundation)
         implementation(compose.material)
         implementation(compose.ui)
-        @OptIn(ExperimentalComposeLibrary::class)
+        @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
         api(compose.components.resources)
 
         implementation(libs.viform.core)
@@ -81,13 +75,11 @@ compose {
       mainClass = "local.sandbox.signupapp.MainKt"
     }
   }
-  experimental {
-    web.application {}
-  }
 }
 
 android {
-  compileSdk = 34
+  namespace = "local.sandbox.signupapp"
+  compileSdk = 35
   sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
   sourceSets["main"].res.srcDirs("src/androidMain/res")
   sourceSets["main"].resources.srcDirs("src/androidMain/resources")
@@ -95,7 +87,7 @@ android {
   defaultConfig {
     applicationId = "local.sandbox.signupapp"
     minSdk = 24
-    targetSdk = 34
+    targetSdk = 35
     versionCode = 1
     versionName = "1.0"
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -110,10 +102,10 @@ android {
     }
   }
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
   }
   composeOptions {
-    kotlinCompilerExtensionVersion = composeVersion
+    kotlinCompilerExtensionVersion = libs.versions.compose.get()
   }
 }

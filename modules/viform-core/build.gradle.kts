@@ -1,19 +1,25 @@
 plugins {
-  id("convention.kotlin-mpp-tier0")
-  id("convention.kotlin-mpp-js")
-  id("convention.kotlin-mpp-wasm")
-  id("convention.library-android")
-  id("convention.library-mpp")
-  id("convention.publishing-mpp")
+    id(libs.plugins.kotlin.kmp.get().pluginId)
+    id(libs.plugins.android.library.get().pluginId)
+    id(libs.plugins.maven.publish.get().pluginId)
+}
+
+android {
+    namespace = "io.github.windedge.viform.core"
 }
 
 kotlin {
-  sourceSets {
-    commonMain {
-      dependencies {
-        implementation(libs.kotlinx.coroutines.core)
-        api(libs.kopybuilder.runtime)
-      }
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.core)
+                api(libs.kopybuilder.runtime)
+            }
+        }
     }
-  }
+    
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+    }
 }
