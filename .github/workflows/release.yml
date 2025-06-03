@@ -8,69 +8,40 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write  # Allows the workflow to create releases and push to the repository
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch full history to support version calculation and pushing
-
-      - name: Set up JDK 17 # Or the JDK version your project uses for building
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
+          fetch-depth: 0  # Fetch full history to support version calculation
+          
       - name: Get tag version
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
+        
       - name: Update version in gradle.properties
         run: |
-          # Configure Git
+          # Ensure we have the latest code
+          git fetch origin
+          git checkout main
+          
+          # Update version number
+          sed -i "s/^version=.*/version=${{ steps.get_version.outputs.VERSION }}/" gradle.properties
+          
+          # Commit and push changes
           git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action for Release"
+          git config --local user.name "GitHub Action"
+          git commit -m "Update version to ${{ steps.get_version.outputs.VERSION }}" -a || echo "No changes to commit"
+          git push origin HEAD:main
           
-          echo "Attempting to update version to ${{ steps.get_version.outputs.VERSION }} in gradle.properties"
-          
-          # Check if gradle.properties exists
-          if [ ! -f gradle.properties ]; then
-            echo "gradle.properties not found. Creating it with the new version."
-            echo "version=${{ steps.get_version.outputs.VERSION }}" > gradle.properties
-          else
-            # Update version number - assuming the property name is 'version'.
-            # Uses a temporary file for sed to ensure compatibility between macOS and Linux.
-            sed -i.bak "s/^version=.*/version=${{ steps.get_version.outputs.VERSION }}/" gradle.properties && rm gradle.properties.bak
-            # If the 'version' property doesn't exist in the file, append it.
-            grep -q "^version=" gradle.properties || echo "version=${{ steps.get_version.outputs.VERSION }}" >> gradle.properties
-          fi
-          
-          echo "Contents of gradle.properties after update:"
-          cat gradle.properties
-
-          git add gradle.properties
-          # Check if there are changes to commit to avoid empty commits
-          if git diff --staged --quiet; then
-            echo "No changes to commit in gradle.properties."
-          else
-            git commit -m "Bump version to ${{ steps.get_version.outputs.VERSION }} [skip ci]"
-            # Push changes. This might need adjustment based on your branching strategy (e.g., push to 'main').
-            # Assumes PAT_FOR_RELEASE_WORKFLOW provides necessary push permissions.
-            git push origin HEAD 
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Standard token, primarily for API access by actions like softprops/action-gh-release
-
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2 # Use v2 of the action
+        uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ steps.get_version.outputs.VERSION }}
           body: |
             Release version ${{ steps.get_version.outputs.VERSION }}
-          draft: true
+          draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # files: | # Optional: Attach build artifacts to the release
           #   build/libs/*.jar
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is used by the action to create the GitHub Release
