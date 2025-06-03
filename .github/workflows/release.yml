@@ -15,7 +15,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch full history to support version calculation and pushing
-          token: ${{ secrets.PAT_FOR_RELEASE_WORKFLOW }} # A Personal Access Token with repo write access
 
       - name: Set up JDK 17 # Or the JDK version your project uses for building
         uses: actions/setup-java@v4
