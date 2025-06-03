@@ -3,10 +3,10 @@ English | [中文](README-CN.md)
 # ViForm
 
 ViForm is a Kotlin library for form validation, mainly aimed at Compose Multiplatform projects. It has the following features:
-* Supports Kotlin Multiplatform(android, jvm, js/wasmjs, native)
+* Supports Kotlin Multiplatform(android, jvm, js/wasmjs, ios)
 * Type-safe validation rules, supporting both DSL style and chained style validation declaration
 * Form state management
-* Integrated support for Compose Multiplatform(android, desktop, wasmjs)
+* Integrated support for Compose Multiplatform(android, desktop, wasmjs, ios)
 
 
 ## Prerequisites
@@ -19,7 +19,7 @@ ViForm is a Kotlin library for form validation, mainly aimed at Compose Multipla
 Apply the KopyBuilder Gradle plugin
 ```kotlin
 plugins {
-    id("io.github.windedge.kopybuilder") version "0.1.5"
+    id("io.github.windedge.kopybuilder") version "0.2.4"
 }
 ```
 
@@ -29,10 +29,10 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.windedge.viform:viform-core:$VERSION")
+                implementation("io.github.windedge.viform:viform-core:0.2.2")
 
                 // Optional
-                implementation("io.github.windedge.viform:viform-compose:$VERSION")
+                implementation("io.github.windedge.viform:viform-compose:0.2.2")
             }
         }
     }
@@ -42,10 +42,10 @@ kotlin {
 Add dependency to JVM project
 ```Kotlin
 dependencies {
-    implementation("io.github.windedge.viform:viform-core:$VERSION")
+    implementation("io.github.windedge.viform:viform-core:0.2.2")
 
     // Optional
-    implementation("io.github.windedge.viform:viform-compose:$VERSION")
+    implementation("io.github.windedge.viform:viform-compose:0.2.2")
 }
 ```
 

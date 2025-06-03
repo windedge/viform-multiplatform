@@ -30,6 +30,16 @@ jobs:
           # Commit and push changes
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          # Update version in README.md and README-CN.md
+          for file in README.md README-CN.md; do
+            if [ -f "$file" ]; then
+              sed -i "s/implementation(\"io.github.windedge.viform:viform-core:.*\")/implementation(\"io.github.windedge.viform:viform-core:${{ steps.get_version.outputs.VERSION }}\")/g" "$file"
+              sed -i "s/implementation(\"io.github.windedge.viform:viform-compose:.*\")/implementation(\"io.github.windedge.viform:viform-compose:${{ steps.get_version.outputs.VERSION }}\")/g" "$file"
+            fi
+          done
+          
+          # Commit and push changes
+          git add README.md README-CN.md
           git commit -m "Update version to ${{ steps.get_version.outputs.VERSION }}" -a || echo "No changes to commit"
           git push origin HEAD:main
           

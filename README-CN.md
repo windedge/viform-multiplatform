@@ -1,10 +1,10 @@
 # ViForm
 
 ViForm是一个用于表单验证的Kotlin库，主要目标是用在Compose Multiplatform项目，它具有下面几个特点：
-* 支持Kotlin多平台(android, jvm, js, wasmjs, native)
+* 支持Kotlin多平台(android, jvm, js, wasmjs, ios)
 * 类型安全的验证规则，同时支持DSL风格和链式风格的验证规则写法
 * 表单状态管理
-* Compose Multiplatform的集成支持(android, desktop, wasmjs)
+* Compose Multiplatform的集成支持(android, desktop, wasmjs, ios)
 
 
 ## 前提条件
@@ -17,7 +17,7 @@ ViForm是一个用于表单验证的Kotlin库，主要目标是用在Compose Mul
 添加KopyBuilder的Gradle插件
 ```kotlin
 plugins {
-    id("io.github.windedge.kopybuilder") version "0.1.5"
+    id("io.github.windedge.kopybuilder") version "0.2.4"
 }
 ```
 
@@ -27,10 +27,10 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation("io.github.windedge.viform:viform-core:$VERSION")
+                implementation("io.github.windedge.viform:viform-core:0.2.2")
 
                 // 可选
-                implementation("io.github.windedge.viform:viform-compose:$VERSION")
+                implementation("io.github.windedge.viform:viform-compose:0.2.2")
             }
         }
     }
@@ -40,10 +40,10 @@ kotlin {
 在JVM项目添加依赖
 ```Kotlin
 dependencies {
-    implementation("io.github.windedge.viform:viform-core:$VERSION")
+    implementation("io.github.windedge.viform:viform-core:0.2.2")
 
     // 可选
-    implementation("io.github.windedge.viform:viform-compose:$VERSION")
+    implementation("io.github.windedge.viform:viform-compose:0.2.2")
 }
 ```
 
