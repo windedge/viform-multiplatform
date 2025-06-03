@@ -1,248 +1,77 @@
-name: Release
+name: Create Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        required: true
-        description: Package version to publish under
-      skipPages:
-        description: Should we skip releasing GitHub pages
-        required: false
-        default: "y"
-      skipMavenCentral:
-        description: Should we skip publishing artefacts to Maven Central
-        required: false
-        default: "n"
-#      skipGitHub:
-#        description: Should we skip publishing artefacts to GitHub Packages
-#        required: false
-#        default: "y"
-  release:
-    types: [ created ]
-
-env:
-  VERSION: ${{ github.event.release.tag_name }}
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  push:
+    tags:
+      - 'v*'  # Tags starting with 'v' will trigger this workflow
 
 jobs:
-  build:
-    name: Build on ${{ matrix.os.runner }}
-    runs-on: ${{ matrix.os.runner }}
-    defaults:
-      run:
-        shell: ${{ matrix.os.shell }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-#          - runner: macos-latest
-#            shell: bash
-#          - runner: windows-latest
-#            shell: msys2 {0}
-          - runner: ubuntu-latest
-            shell: bash
-    steps:
-      - uses: msys2/setup-msys2@v2
-        if: ${{ runner.os == 'Windows' }}
-        with:
-          msystem: MINGW64
-          update: true
-          path-type: inherit
-          install: >-
-            tar
-            make
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-cmake
-            mingw-w64-x86_64-extra-cmake-modules
-            mingw64/mingw-w64-x86_64-cyrus-sasl
-
-      - uses: actions/checkout@v3
-
-      - name: Restore native cache
-        id: cache-native
-        uses: actions/cache@v3
-        with:
-          path: |
-            scripts/build
-          key: ${{ runner.os }}-native-${{ hashFiles('./scripts/*') }}
-
-      - name: Setup native libraries
-        run: ./scripts/setup.sh
-
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'adopt'
-          java-version: |
-            11
-            17
-
-      - name: Restore Gradle cache
-        id: cache-gradle
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.gradle/yarn
-            ~/.gradle/nodejs
-            ~/.konan
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
-      - name: Resolve Version
-        run: |
-          VERSION=${VERSION:=${{ github.event.inputs.version }}}
-          echo "VERSION=${VERSION/v}" >> $GITHUB_ENV
-
-      - name: Gradle Assemble Publications
-        run: ./gradlew publishToMavenLocal --scan
-
-      - name: Gradle Check
-        run: ./gradlew kotlinUpgradeYarnLock check --scan
-
-      - uses: actions/upload-artifact@v3
-        if: ${{ always() }}
-        with:
-          name: publications-${{ runner.os }}
-          path: |
-            **/build/publications
-            **/build/libs
-            **/build/reports
-
-      - name: Gradle Assemble Dokka
-        if: ${{ runner.os == 'Linux' }}
-        run: ./gradlew dokkaHtmlMultiModule -Pversion=${VERSION//v} --scan
-
-      - uses: actions/upload-artifact@v3
-        if: ${{ runner.os == 'Linux' }}
-        with:
-          name: dokka
-          path: |
-            **/build/dokka
-
-  release-Artefacts:
-    name: Release to ${{ matrix.repository.name }} on ${{ matrix.os.runner }}
-    runs-on: ${{ matrix.os.runner }}
-    needs: [ build ]
-    defaults:
-      run:
-        shell: ${{ matrix.os.shell }}
-    env:
-      GH_USERNAME: ${{ github.actor }}
-      GH_PASSWORD: ${{ github.token }}
-      ORG_GRADLE_PROJECT_signingKey: ${{ secrets.SIGNING_KEY }}
-      ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }}
-      ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }}
-      ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.SONATYPE_USERNAME }}
-      ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.SONATYPE_PASSWORD }}
-    strategy:
-      matrix:
-        repository:
-#          - name: Github Packages
-#            tasks: publishAllPublicationsToGitHubRepository
-#            enabled: ${{ github.event.inputs.skipGitHub != 'y' }}
-          - name: Maven Central
-            # Requires to manually release a new version on https://s01.oss.sonatype.org/#stagingRepositories
-            # If you're brave, you could change it to `publishToSonatype closeAndReleaseSonatypeStagingRepository` to fully automate the release
-            tasks: publishToSonatype closeSonatypeStagingRepository
-            enabled: ${{ github.event.inputs.skipMavenCentral != 'y' }}
-        os:
-#          - runner: macos-latest
-#            shell: bash
-#          - runner: windows-latest
-#            shell: msys2 {0}
-          - runner: ubuntu-latest
-            shell: bash
-    steps:
-      - uses: msys2/setup-msys2@v2
-        if: ${{ matrix.repository.enabled == true && runner.os == 'Windows' }}
-        with:
-          msystem: MINGW64
-          update: true
-          path-type: inherit
-          install: >-
-            tar
-
-      - name: Restore native cache
-        if: ${{ matrix.repository.enabled == true }}
-        id: cache-native
-        uses: actions/cache@v3
-        with:
-          path: |
-            scripts/build
-          key: ${{ runner.os }}-native-${{ hashFiles('./scripts/*') }}
-
-      - uses: actions/checkout@v3
-        if: ${{ matrix.repository.enabled == true }}
-
-      - name: Setup native libraries
-        if: ${{ matrix.repository.enabled == true }}
-        run: ./scripts/setup.sh
-
-      - uses: actions/setup-java@v3
-        if: ${{ matrix.repository.enabled == true }}
-        with:
-          distribution: 'adopt'
-          java-version: |
-            11
-            17
-
-      - name: Restore Gradle cache
-        if: ${{ matrix.repository.enabled == true }}
-        id: cache-gradle
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            ~/.gradle/yarn
-            ~/.gradle/nodejs
-            ~/.konan
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
-      - uses: actions/download-artifact@v3
-        if: ${{ matrix.repository.enabled == true }}
-        with:
-          name: publications-${{ runner.os }}
-
-      - name: Resolve Version
-        if: ${{ matrix.repository.enabled == true }}
-        run: |
-          VERSION=${VERSION:=${{ github.event.inputs.version }}}
-          echo "VERSION=${VERSION/v}" >> $GITHUB_ENV
-
-      - name: Gradle Publish to ${{ matrix.repository.name }}
-        if: ${{ matrix.repository.enabled == true }}
-        run: ./gradlew ${{ matrix.repository.tasks }} -Pversion=${VERSION//v} --scan
-
-  release-Dokka:
+  release:
     runs-on: ubuntu-latest
-    needs: [ build ]
-    if: ${{ github.event.inputs.skipPages != 'y' }}
+    permissions:
+      contents: write  # Allows the workflow to create releases and push to the repository
     steps:
-      - uses: actions/download-artifact@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          name: dokka
+          fetch-depth: 0  # Fetch full history to support version calculation and pushing
+          token: ${{ secrets.PAT_FOR_RELEASE_WORKFLOW }} # A Personal Access Token with repo write access
 
-      - name: Resolve Version
-        run: |
-          VERSION=${VERSION:=${{ github.event.inputs.version }}}
-          echo "VERSION=${VERSION/v}" >> $GITHUB_ENV
-
-      - name: Build Dokka Pages
-        run: |
-          REPO_NAME=${{ github.repository }}
-          REPO_NAME=${REPO_NAME#${{ github.repository_owner }}/}
-          cp -avr build/dokka/htmlMultiModule/ public;
-          find public -type f -regex '.*\.\(htm\|html\|txt\|text\|js\|css\)$' -exec gzip -f -k {} \;
-          echo "/${REPO_NAME} /${REPO_NAME}/${REPO_NAME}/index.html 301" > public/_redirects;
-          echo "/${REPO_NAME}/index.html /${REPO_NAME}/${REPO_NAME}/index.html 301" >> public/_redirects;
-
-      - uses: crazy-max/ghaction-github-pages@v3.1.0
+      - name: Set up JDK 17 # Or the JDK version your project uses for building
+        uses: actions/setup-java@v4
         with:
-          target_branch: gh-pages
-          build_dir: public
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Get tag version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Update version in gradle.properties
+        run: |
+          # Configure Git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action for Release"
+          
+          echo "Attempting to update version to ${{ steps.get_version.outputs.VERSION }} in gradle.properties"
+          
+          # Check if gradle.properties exists
+          if [ ! -f gradle.properties ]; then
+            echo "gradle.properties not found. Creating it with the new version."
+            echo "version=${{ steps.get_version.outputs.VERSION }}" > gradle.properties
+          else
+            # Update version number - assuming the property name is 'version'.
+            # Uses a temporary file for sed to ensure compatibility between macOS and Linux.
+            sed -i.bak "s/^version=.*/version=${{ steps.get_version.outputs.VERSION }}/" gradle.properties && rm gradle.properties.bak
+            # If the 'version' property doesn't exist in the file, append it.
+            grep -q "^version=" gradle.properties || echo "version=${{ steps.get_version.outputs.VERSION }}" >> gradle.properties
+          fi
+          
+          echo "Contents of gradle.properties after update:"
+          cat gradle.properties
+
+          git add gradle.properties
+          # Check if there are changes to commit to avoid empty commits
+          if git diff --staged --quiet; then
+            echo "No changes to commit in gradle.properties."
+          else
+            git commit -m "Bump version to ${{ steps.get_version.outputs.VERSION }} [skip ci]"
+            # Push changes. This might need adjustment based on your branching strategy (e.g., push to 'main').
+            # Assumes PAT_FOR_RELEASE_WORKFLOW provides necessary push permissions.
+            git push origin HEAD 
+          fi
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Standard token, primarily for API access by actions like softprops/action-gh-release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2 # Use v2 of the action
+        with:
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            Release version ${{ steps.get_version.outputs.VERSION }}
+          draft: true
+          prerelease: false
+          # files: | # Optional: Attach build artifacts to the release
+          #   build/libs/*.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is used by the action to create the GitHub Release

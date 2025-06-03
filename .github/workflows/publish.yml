@@ -1,0 +1,61 @@
+name: Publish to Maven Central
+
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow
+  release:
+    types: [published] # Triggers when a new release is published
+
+jobs:
+  publish:
+    runs-on: macos-latest # Or ubuntu-latest, depending on your needs
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # Use a newer version of the checkout action
+
+      - name: Set up JDK 17 # Consistent with KopyBuilder; change if viform-multiplatform needs a different version
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17' # Consistent with KopyBuilder; change if viform-multiplatform needs a different version
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3 # Use the new Gradle action path
+
+      - name: Import GPG key
+        run: |
+          # Create GPG directory
+          mkdir -p ~/.gnupg/
+          chmod 700 ~/.gnupg/
+          
+          # Set GPG agent and conf for loopback pinentry
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+          
+          # Import key
+          echo "${{ secrets.GPG_KEY_CONTENTS }}" | base64 --decode | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
+        env:
+          GPG_KEY_CONTENTS: ${{ secrets.GPG_KEY_CONTENTS }} # Needs to be configured in GitHub secrets
+
+      - name: Publish to Maven Central with Nexus Publish Plugin
+        env:
+          ORG_GRADLE_PROJECT_sonatypeUsername: ${{ secrets.OSSRH_USERNAME }} # nexus-publish typically reads sonatypeUsername
+          ORG_GRADLE_PROJECT_sonatypePassword: ${{ secrets.OSSRH_PASSWORD }} # nexus-publish typically reads sonatypePassword
+          ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_KEY_CONTENTS_ASCII_ARMORED }} # signing plugin typically reads signingKey (ASCII armored)
+          ORG_GRADLE_PROJECT_signingKeyId: ${{ secrets.SIGNING_KEY_ID }} # signing plugin typically reads signingKeyId
+          ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.SIGNING_PASSWORD }} # signing plugin typically reads signingPassword
+          # SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }} # nexus-publish usually auto-matches via packageGroup
+        run: |
+          # Determine the type of version to publish based on the trigger event.
+          # If it's a release event, it's typically a final release.
+          # If it's workflow_dispatch, parameters might be needed to decide between snapshot or final.
+          # Here, we simplify to always try to publish and close the repository, suitable for release events.
+          # For nexus-publish, the command is usually publishToSonatype closeAndReleaseSonatypeStagingRepository.
+          # Note: For Windows, use ./gradlew.bat. This is macos-latest, so ./gradlew is used.
+          # User specified -i -s parameters.
+          ./gradlew -i -s publishToSonatype closeAndReleaseSonatypeStagingRepository --no-daemon --no-parallel
