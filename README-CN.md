@@ -130,16 +130,9 @@ fun SignupApp() {
 ```
 
 
-[//]: # (## 构建状态)
+## 已知问题
 
-[//]: # ()
-[//]: # (这里可以放置CI/CD构建状态的徽章。)
-
-[//]: # ()
-[//]: # (## 贡献)
-
-[//]: # ()
-[//]: # (如果你想贡献代码，请阅读`CONTRIBUTING.md`。)
+在编译 WebAssembly (WASM) 目标时，可能会遇到 `Can't link symbol kotlin.internal.ir/ANDAND` 错误。
 
 ## 许可证
 [MIT License](./LICENSE)
@@ -147,8 +140,3 @@ fun SignupApp() {
 ## 作者
 
 [Ken Xu](https://github.com/windedge)
-
-[//]: # (## 致谢)
-
-[//]: # ()
-[//]: # (感谢所有贡献者的努力。)

@@ -134,8 +134,7 @@ fun SignupApp() {
 
 ## Known Issues
 
-When compiling the WebAssembly (WASM) target, you may encounter the error `Can't link symbol kotlin.internal.ir/ANDAND`. This is a known issue with the Kotlin/Wasm compiler, and there is currently no solution available.
-
+When compiling the WebAssembly (WASM) target, you may encounter the error `Can't link symbol kotlin.internal.ir/ANDAND`. 
 
 ## License
 [MIT License](./LICENSE)
