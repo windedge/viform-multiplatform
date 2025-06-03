@@ -12,6 +12,7 @@ lint.xml
 *.log
 *.bak.*
 *.cmd
+.aider.*
 .excludes.txt
 tasks.py
 fabfile.py
